@@ -1,0 +1,3 @@
+class GoalController {
+  void createGoal() {}
+}

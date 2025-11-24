@@ -1,0 +1,3 @@
+class CommunityController {
+  void loadPosts() {}
+}

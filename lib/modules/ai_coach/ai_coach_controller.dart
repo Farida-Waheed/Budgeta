@@ -1,0 +1,3 @@
+class AiCoachController {
+  void loadTips() {}
+}
