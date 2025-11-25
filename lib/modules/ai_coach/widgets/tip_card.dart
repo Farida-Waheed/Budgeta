@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
+import '../../../config/theme/colors.dart';
 
 class TipCard extends StatelessWidget {
-  final String tip;
+  final String text;
 
-  const TipCard({super.key, required this.tip});
+  const TipCard({super.key, required this.text});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Text(tip),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppColors.pink.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
       ),
     );
   }

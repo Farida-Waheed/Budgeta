@@ -1,24 +1,48 @@
+enum TransactionType { income, expense }
+
 class TransactionModel {
   final String id;
-  final String title;
   final double amount;
+  final String category;
+  final DateTime date;
+  final String? note;
+  final TransactionType type;
+  final String? receiptImage;
 
   TransactionModel({
     required this.id,
-    required this.title,
     required this.amount,
+    required this.category,
+    required this.date,
+    required this.type,
+    this.note,
+    this.receiptImage,
   });
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'amount': amount,
-      };
+  // For saving to local storage / API
+  Map<String, dynamic> toMap() {
+    return {
+      "id": id,
+      "amount": amount,
+      "category": category,
+      "date": date.toIso8601String(),
+      "note": note,
+      "type": type.name,
+      "receiptImage": receiptImage,
+    };
+  }
 
-  factory TransactionModel.fromJson(Map<String, dynamic> json) =>
-      TransactionModel(
-        id: json['id'],
-        title: json['title'],
-        amount: json['amount'],
-      );
+  factory TransactionModel.fromMap(Map<String, dynamic> map) {
+    return TransactionModel(
+      id: map["id"],
+      amount: map["amount"],
+      category: map["category"],
+      date: DateTime.parse(map["date"]),
+      note: map["note"],
+      type: map["type"] == "income"
+          ? TransactionType.income
+          : TransactionType.expense,
+      receiptImage: map["receiptImage"],
+    );
+  }
 }
