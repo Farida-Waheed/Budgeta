@@ -1,10 +1,9 @@
-// lib/features/dashboard/presentation/widgets/time_filter_bar.dart
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
-import '../../../dashboard/data/dashboard_repository.dart';
+import '../../data/dashboard_repository.dart' as dash_repo;
 
-typedef DashboardFilterCallback = void Function(DashboardFilter filter);
+typedef DashboardFilterCallback = void Function(dash_repo.DashboardFilter);
 
 class TimeFilterBar extends StatefulWidget {
   final DashboardFilterCallback onFilterChanged;
@@ -19,33 +18,33 @@ class TimeFilterBar extends StatefulWidget {
 }
 
 class _TimeFilterBarState extends State<TimeFilterBar> {
-  int _selectedIndex = 1; // 0 = week, 1 = month, 2 = 30 days
-
-  void _updateSelection(int index) {
-    setState(() => _selectedIndex = index);
-    switch (index) {
-      case 0:
-        widget.onFilterChanged(DashboardFilter.thisWeek());
-        break;
-      case 1:
-        widget.onFilterChanged(DashboardFilter.currentMonth());
-        break;
-      case 2:
-        widget.onFilterChanged(DashboardFilter.last30Days());
-        break;
-    }
-  }
+  int _selectedIndex = 1; // 0 = 30 days, 1 = month, 2 = all time
 
   @override
   void initState() {
     super.initState();
     // Fire initial value
-    widget.onFilterChanged(DashboardFilter.currentMonth());
+    widget.onFilterChanged(dash_repo.DashboardFilter.currentMonth());
+  }
+
+  void _updateSelection(int index) {
+    setState(() => _selectedIndex = index);
+    switch (index) {
+      case 0:
+        widget.onFilterChanged(dash_repo.DashboardFilter.last30Days());
+        break;
+      case 1:
+        widget.onFilterChanged(dash_repo.DashboardFilter.currentMonth());
+        break;
+      case 2:
+        widget.onFilterChanged(dash_repo.DashboardFilter.allTime());
+        break;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final labels = ['This week', 'This month', 'Last 30 days'];
+    final labels = ['Last 30 days', 'This month', 'All time'];
 
     return Wrap(
       spacing: 8,
@@ -59,7 +58,8 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
               BudgetaColors.accentLight.withValues(alpha: 0.4),
           labelStyle: TextStyle(
             color: isSelected ? Colors.white : BudgetaColors.deep,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontWeight:
+                isSelected ? FontWeight.bold : FontWeight.normal,
           ),
           onSelected: (_) => _updateSelection(i),
         );

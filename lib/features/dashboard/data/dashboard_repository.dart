@@ -39,6 +39,13 @@ class DashboardFilter {
     final to = from.add(const Duration(days: 7));
     return DashboardFilter(from: from, to: to);
   }
+
+  /// All time (from a fixed early date until now)
+  factory DashboardFilter.allTime() {
+    final from = DateTime(2000, 1, 1); // or any start you like
+    final to = DateTime.now();
+    return DashboardFilter(from: from, to: to);
+  }
 }
 
 /// Used for "Save Dashboard Preset"
@@ -104,7 +111,7 @@ abstract class DashboardRepository {
     required DashboardFilter filter,
   });
 
-  // UC: View insights (NOW tied to filter)
+  // UC: View insights (tied to filter)
   Future<List<Insight>> getInsights({
     required String userId,
     required DashboardFilter filter,
@@ -117,23 +124,26 @@ abstract class DashboardRepository {
     required DashboardFilter filter,
   });
 
-  // ... rest of methods unchanged
+  // UC: Compare periods
   Future<PeriodComparison> compareWithPreviousPeriod({
     required String userId,
     required DashboardFilter currentFilter,
   });
 
+  // UC: Presets
   Future<void> savePreset({
     required String userId,
     required DashboardPreset preset,
   });
 
   Future<List<DashboardPreset>> getPresets(String userId);
+
   Future<void> deletePreset({
     required String userId,
     required String presetId,
   });
 
+  // UC: Reports / Export
   Future<SpendingReport> generateSpendingReport({
     required String userId,
     required DashboardFilter filter,
@@ -143,9 +153,11 @@ abstract class DashboardRepository {
   Future<String> exportReportAsPdf(SpendingReport report);
   Future<String> exportReportAsCsv(SpendingReport report);
 
+  // UC: Pipelines / Monitoring
   Future<void> refreshPipelines(String userId);
   Future<Map<String, dynamic>> getPerformanceMetrics();
 
+  // UC: Validate budget logic
   Future<List<BudgetIssue>> validateBudgetLogic({
     required String userId,
     required DashboardFilter filter,

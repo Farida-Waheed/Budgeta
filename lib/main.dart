@@ -10,7 +10,6 @@ import 'features/tracking/state/tracking_cubit.dart';
 
 // Dashboard
 import 'features/dashboard/data/in_memory_dashboard_repository.dart';
-import 'features/dashboard/data/dashboard_repository.dart'; // for DashboardFilter
 import 'features/dashboard/state/dashboard_cubit.dart';
 
 void main() {
@@ -40,9 +39,7 @@ void main() {
           create: (_) => DashboardCubit(
             repository: dashboardRepo,
             userId: userId,
-          )..loadDashboard(
-              DashboardFilter.currentMonth(),
-            ),
+          )..loadDashboard(), // now allowed (optional param)
         ),
       ],
       child: const BudgetaApp(),

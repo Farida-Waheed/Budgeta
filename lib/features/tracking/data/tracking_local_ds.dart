@@ -30,6 +30,8 @@ class InMemoryTrackingLocalDataSource implements TrackingLocalDataSource {
 
   InMemoryTrackingLocalDataSource() {
     final now = DateTime.now();
+
+    // Demo transactions for the report / dashboard use cases
     _transactions.addAll([
       Transaction(
         id: 't1',
@@ -60,6 +62,7 @@ class InMemoryTrackingLocalDataSource implements TrackingLocalDataSource {
       ),
     ]);
 
+    // Demo recurring rule for "fixed payments" use case
     _recurringRules.add(
       RecurringRule(
         id: 'r1',
@@ -72,6 +75,8 @@ class InMemoryTrackingLocalDataSource implements TrackingLocalDataSource {
     );
   }
 
+  // ---------------- TRANSACTIONS ----------------
+
   @override
   Future<Transaction> addTransaction(Transaction transaction) async {
     _transactions.add(transaction);
@@ -79,13 +84,17 @@ class InMemoryTrackingLocalDataSource implements TrackingLocalDataSource {
   }
 
   @override
-  Future<void> deleteTransaction(String transactionId) async {
-    _transactions.removeWhere((t) => t.id == transactionId);
+  Future<Transaction> updateTransaction(Transaction transaction) async {
+    final index = _transactions.indexWhere((t) => t.id == transaction.id);
+    if (index != -1) {
+      _transactions[index] = transaction;
+    }
+    return transaction;
   }
 
   @override
-  Future<List<RecurringRule>> getRecurringRules(String userId) async {
-    return _recurringRules.where((r) => r.userId == userId).toList();
+  Future<void> deleteTransaction(String transactionId) async {
+    _transactions.removeWhere((t) => t.id == transactionId);
   }
 
   @override
@@ -101,16 +110,31 @@ class InMemoryTrackingLocalDataSource implements TrackingLocalDataSource {
       if (from != null && t.date.isBefore(from)) return false;
       if (to != null && t.date.isAfter(to)) return false;
       if (categoryId != null && t.categoryId != categoryId) return false;
-      if (type != null && t.type == TransactionType.expense && type != TransactionType.expense) return false;
-      if (type != null && t.type == TransactionType.income && type != TransactionType.income) return false;
+      if (type != null && t.type != type) return false;
       return true;
     }).toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
 
+  // ---------------- RECURRING RULES ----------------
+
+  @override
+  Future<List<RecurringRule>> getRecurringRules(String userId) async {
+    return _recurringRules.where((r) => r.userId == userId).toList();
+  }
+
   @override
   Future<RecurringRule> addRecurringRule(RecurringRule rule) async {
     _recurringRules.add(rule);
+    return rule;
+  }
+
+  @override
+  Future<RecurringRule> updateRecurringRule(RecurringRule rule) async {
+    final index = _recurringRules.indexWhere((r) => r.id == rule.id);
+    if (index != -1) {
+      _recurringRules[index] = rule;
+    }
     return rule;
   }
 
@@ -130,23 +154,5 @@ class InMemoryTrackingLocalDataSource implements TrackingLocalDataSource {
         isActive: !old.isActive,
       );
     }
-  }
-
-  @override
-  Future<RecurringRule> updateRecurringRule(RecurringRule rule) async {
-    final index = _recurringRules.indexWhere((r) => r.id == rule.id);
-    if (index != -1) {
-      _recurringRules[index] = rule;
-    }
-    return rule;
-  }
-
-  @override
-  Future<Transaction> updateTransaction(Transaction transaction) async {
-    final index = _transactions.indexWhere((t) => t.id == transaction.id);
-    if (index != -1) {
-      _transactions[index] = transaction;
-    }
-    return transaction;
   }
 }

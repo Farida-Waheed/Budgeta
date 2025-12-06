@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'router.dart';
 import 'theme.dart';
+
+// Tracking
 import '../features/tracking/data/tracking_repository.dart';
 import '../features/tracking/data/in_memory_tracking_repository.dart';
 
@@ -12,14 +14,23 @@ class BudgetaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Provide ONE shared TrackingRepository instance for the whole app
     return RepositoryProvider<TrackingRepository>(
+      // thanks to the singleton pattern, this is the same instance
+      // used everywhere in the app
       create: (_) => InMemoryTrackingRepository(),
+
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Budgeta',
+
         theme: BudgetaTheme.lightTheme,
-        onGenerateRoute: AppRoutes.onGenerateRoute,
+        darkTheme: BudgetaTheme.darkTheme,
+        themeMode: ThemeMode.light,
+
+        // use the new router
+        onGenerateRoute: AppRouter.onGenerateRoute,
+
+        // first screen = hero / welcome (DashboardOverviewScreen)
         initialRoute: AppRoutes.home,
       ),
     );

@@ -1,68 +1,70 @@
 // lib/app/router.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-// Real implemented screens
-import '../features/dashboard/presentation/screens/dashboard_overview_screen.dart';
-import '../features/tracking/presentation/screens/transactions_list_screen.dart';
-import '../features/tracking/presentation/screens/add_transaction_screen.dart';
-import '../features/tracking/presentation/screens/recurring_transactions_screen.dart';
-
-// Subsystem screens we still use directly
-import '../features/community/presentation/screens/community_feed_screen.dart';
-
-// Shared UI & theme
-import '../shared/bottom_nav.dart';
 import 'theme.dart';
 
-// For passing preselected type to AddTransactionScreen
+// HERO / WELCOME (Transform your money journey...)
+import '../features/dashboard/presentation/screens/dashboard_overview_screen.dart';
+
+// MAIN DASHBOARD (Hello, Beautiful! + balance + lists)
+import '../features/dashboard/presentation/screens/dashboard_home_screen.dart';
+
+// TRACKING
+import '../features/tracking/presentation/screens/transactions_list_screen.dart';
+import '../features/tracking/presentation/screens/add_transaction_screen.dart';
+import '../features/tracking/presentation/screens/edit_transaction_screen.dart';
+import '../features/tracking/presentation/screens/recurring_transactions_screen.dart';
+
+// COACH / GOALS / COMMUNITY
+import '../features/coach/presentation/screens/coach_home_screen.dart';
+import '../features/goals/presentation/screens/goals_home_screen.dart';
+import '../features/community/presentation/screens/community_feed_screen.dart';
+
+// SETTINGS
+import '../features/settings/presentation/screens/settings_screen.dart';
+
+// MODELS
 import '../core/models/transaction.dart';
 
-// Dashboard wiring
-import '../features/dashboard/state/dashboard_cubit.dart';
-import '../features/dashboard/data/in_memory_dashboard_repository.dart';
-import '../features/dashboard/data/dashboard_repository.dart' as dash_repo;
-
-// Tracking repo implementation (singleton)
-import '../features/tracking/data/in_memory_tracking_repository.dart';
-
-// Settings screen
-import '../features/settings/presentation/screens/settings_screen.dart';
-// NEW: Home screen
-import '../features/home/presentation/screens/home_screen.dart';
-
+/// ----------------------
+/// ROUTE NAMES
+/// ----------------------
 class AppRoutes {
-  // NEW: home is now the root
+  /// First screen when app launches → hero “Transform your money journey…”
   static const String home = '/';
 
-  // Dashboard moved to its own path
+  /// Main dashboard (Hello, Beautiful! + balance + stats)
   static const String dashboard = '/dashboard';
 
-  // Tracking / Transactions
+  /// Tracking / transactions
   static const String tracking = '/tracking';
-  static const String transactions = '/transactions';
+  static const String transactions = '/transactions'; // alias if needed
+  static const String addTransaction = '/tracking/add';
+  static const String editTransaction = '/tracking/edit';
+  static const String recurring = '/tracking/recurring';
 
-  // Other subsystems
+  /// Other subsystems
   static const String goals = '/goals';
   static const String coach = '/coach';
   static const String challenges = '/challenges';
   static const String community = '/community';
 
-  // Extra flows
-  static const String addTransaction = '/add-transaction';
-  static const String recurring = '/recurring';
-
-  // Settings
+  /// Settings
   static const String settings = '/settings';
+}
 
+/// ----------------------
+/// APP ROUTER
+/// ----------------------
+class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       // -------------------
-      //   HOME
+      //   HOME → HERO SCREEN
       // -------------------
       case AppRoutes.home:
         return MaterialPageRoute(
-          builder: (_) => const HomeScreen(),
+          builder: (_) => const DashboardOverviewScreen(),
           settings: settings,
         );
 
@@ -71,78 +73,37 @@ class AppRoutes {
       // -------------------
       case AppRoutes.dashboard:
         return MaterialPageRoute(
-          builder: (context) {
-            final trackingRepo = InMemoryTrackingRepository();
-            final dashboardRepo = InMemoryDashboardRepository(
-              trackingRepository: trackingRepo,
-            );
-
-            return BlocProvider<DashboardCubit>(
-              create: (_) => DashboardCubit(
-                repository: dashboardRepo,
-                userId: 'demo-user', // TODO: replace with real user id
-              )..loadDashboard(dash_repo.DashboardFilter.currentMonth()),
-              child: const DashboardOverviewScreen(),
-            );
-          },
+          builder: (_) => const DashboardHomeScreen(),
           settings: settings,
         );
 
       // -------------------
       //   TRACKING / TRANSACTIONS
       // -------------------
-      case tracking:
-      case transactions:
+      case AppRoutes.tracking:
+      case AppRoutes.transactions:
         return MaterialPageRoute(
           builder: (_) => const TransactionsListScreen(),
           settings: settings,
         );
 
-      // -------------------
-      //   GOALS
-      // -------------------
-      case goals:
-        return MaterialPageRoute(
-          builder: (_) => const _GoalsPlaceholderScreen(),
-          settings: settings,
-        );
-
-      // -------------------
-      //   COACH
-      // -------------------
-      case coach:
-        return MaterialPageRoute(
-          builder: (_) => const _CoachPlaceholderScreen(),
-          settings: settings,
-        );
-
-      // -------------------
-      //   CHALLENGES
-      // -------------------
-      case challenges:
-        return MaterialPageRoute(
-          builder: (_) => const _ChallengesPlaceholderScreen(),
-          settings: settings,
-        );
-
-      // -------------------
-      //   COMMUNITY
-      // -------------------
-      case community:
-        return MaterialPageRoute(
-          builder: (_) => const CommunityFeedScreen(),
-          settings: settings,
-        );
-
-      // -------------------
-      //   ADD TRANSACTION
-      // -------------------
-      case addTransaction:
+      case AppRoutes.addTransaction:
+        // Can be called with:
+        // Navigator.pushNamed(context, AppRoutes.addTransaction);
+        // or with a preselected type:
+        // Navigator.pushNamed(
+        //   context,
+        //   AppRoutes.addTransaction,
+        //   arguments: TransactionType.income,
+        // );
         TransactionType? preselected;
         final args = settings.arguments;
         if (args is TransactionType) {
           preselected = args;
+        } else if (args is Map && args['type'] is TransactionType) {
+          preselected = args['type'] as TransactionType;
         }
+
         return MaterialPageRoute(
           builder: (_) => AddTransactionScreen(
             preselectedType: preselected,
@@ -150,12 +111,47 @@ class AppRoutes {
           settings: settings,
         );
 
-      // -------------------
-      //   RECURRING
-      // -------------------
-      case recurring:
+      case AppRoutes.editTransaction:
+        // Expect: Navigator.pushNamed(context, AppRoutes.editTransaction, arguments: tx);
+        final args = settings.arguments;
+        if (args is! Transaction) {
+          return _errorRoute('EditTransactionScreen needs a Transaction.');
+        }
+        return MaterialPageRoute(
+          builder: (_) => EditTransactionScreen(transaction: args),
+          settings: settings,
+        );
+
+      case AppRoutes.recurring:
         return MaterialPageRoute(
           builder: (_) => const RecurringTransactionsScreen(),
+          settings: settings,
+        );
+
+      // -------------------
+      //   GOALS / COACH / COMMUNITY / CHALLENGES
+      // -------------------
+      case AppRoutes.goals:
+        return MaterialPageRoute(
+          builder: (_) => const GoalsHomeScreen(),
+          settings: settings,
+        );
+
+      case AppRoutes.coach:
+        return MaterialPageRoute(
+          builder: (_) => const CoachHomeScreen(),
+          settings: settings,
+        );
+
+      case AppRoutes.community:
+        return MaterialPageRoute(
+          builder: (_) => const CommunityFeedScreen(),
+          settings: settings,
+        );
+
+      case AppRoutes.challenges:
+        return MaterialPageRoute(
+          builder: (_) => const _ChallengesPlaceholderScreen(),
           settings: settings,
         );
 
@@ -169,82 +165,30 @@ class AppRoutes {
         );
 
       // -------------------
-      //   DEFAULT → HOME
+      //   DEFAULT → HERO
       // -------------------
       default:
         return MaterialPageRoute(
-          builder: (_) => const HomeScreen(),
+          builder: (_) => const DashboardOverviewScreen(),
           settings: settings,
         );
     }
   }
-}
 
-/// ---------------------
-///   GOALS PLACEHOLDER
-/// ---------------------
-class _GoalsPlaceholderScreen extends StatelessWidget {
-  const _GoalsPlaceholderScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: BudgetaColors.background,
-      appBar: AppBar(
-        title: const Text('Goals'),
-        centerTitle: true,
-        backgroundColor: BudgetaColors.background,
-        foregroundColor: BudgetaColors.deep,
-        elevation: 0,
-      ),
-      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 2),
-      body: const Center(
-        child: Text(
-          'Goals coming soon...',
-          style: TextStyle(
-            color: BudgetaColors.deep,
-            fontSize: 16,
-          ),
-        ),
+  static Route<dynamic> _errorRoute(String message) {
+    return MaterialPageRoute(
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: const Text('Routing error')),
+        body: Center(child: Text(message)),
       ),
     );
   }
 }
 
-/// ---------------------
-///   COACH PLACEHOLDER
-/// ---------------------
-class _CoachPlaceholderScreen extends StatelessWidget {
-  const _CoachPlaceholderScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: BudgetaColors.background,
-      appBar: AppBar(
-        title: const Text('Coach'),
-        centerTitle: true,
-        backgroundColor: BudgetaColors.background,
-        foregroundColor: BudgetaColors.deep,
-        elevation: 0,
-      ),
-      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 3),
-      body: const Center(
-        child: Text(
-          'Coach feed coming soon...',
-          style: TextStyle(
-            color: BudgetaColors.deep,
-            fontSize: 16,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// -------------------------
-///   CHALLENGES PLACEHOLDER
-/// -------------------------
+/// ----------------------
+/// CHALLENGES PLACEHOLDER
+/// (UI can be swapped later)
+/// ----------------------
 class _ChallengesPlaceholderScreen extends StatelessWidget {
   const _ChallengesPlaceholderScreen();
 
@@ -255,18 +199,15 @@ class _ChallengesPlaceholderScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Challenges'),
         centerTitle: true,
-        backgroundColor: BudgetaColors.background,
-        foregroundColor: BudgetaColors.deep,
-        elevation: 0,
       ),
-      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 4),
       body: const Center(
         child: Text(
-          'Challenges coming soon...',
+          'Challenges coming soon…',
           style: TextStyle(
             color: BudgetaColors.deep,
             fontSize: 16,
           ),
+          textAlign: TextAlign.center,
         ),
       ),
     );

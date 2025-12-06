@@ -5,7 +5,6 @@ import '../../../core/models/dashboard_view.dart';
 import '../../../core/models/insight.dart';
 import '../../../core/models/transaction.dart';
 import '../../tracking/data/tracking_repository.dart';
-
 import 'dashboard_repository.dart';
 
 class InMemoryDashboardRepository implements DashboardRepository {
@@ -34,12 +33,11 @@ class InMemoryDashboardRepository implements DashboardRepository {
 
     for (final t in txs) {
       if (t.type == TransactionType.income) {
-        // ✅ Income affects income/net only, NOT spending per category
+        // Income affects income/net only, NOT spending per category
         income += t.amount;
       } else {
         // Expense
         expenses += t.amount;
-        // ✅ Only count EXPENSES in category spending
         byCategory[t.categoryId] =
             (byCategory[t.categoryId] ?? 0) + t.amount;
       }
@@ -58,13 +56,12 @@ class InMemoryDashboardRepository implements DashboardRepository {
         .toList()
       ..sort((a, b) => b.amount.compareTo(a.amount));
 
-    // ✅ Only mark as "overspending" when there is actual data
     final hasData = income > 0 || expenses > 0;
 
     final isOnTrack = !hasData
-        ? true // no data yet → don't scare the user
+        ? true // no data → don't scare the user
         : (income == 0)
-            ? false // expenses but no income → overspending
+            ? false
             : (expenses / income) < 0.8;
 
     return DashboardView(
@@ -78,6 +75,7 @@ class InMemoryDashboardRepository implements DashboardRepository {
   }
 
   // ---------- SMART INSIGHTS ----------
+
   @override
   Future<List<Insight>> getInsights({
     required String userId,
@@ -118,7 +116,7 @@ class InMemoryDashboardRepository implements DashboardRepository {
       );
     }
 
-    // 2) Dominant category (only expenses, because topCategories is expenses-only now)
+    // 2) Dominant category (only expenses)
     if (current.topCategories.isNotEmpty && current.totalExpenses > 0) {
       final top = current.topCategories.first;
       final percent = top.amount / current.totalExpenses;
@@ -293,14 +291,12 @@ class InMemoryDashboardRepository implements DashboardRepository {
     final view = await getDashboardOverview(userId: userId, filter: filter);
     final issues = <BudgetIssue>[];
 
-    // Do not show alerts if there is literally no data
     final hasData = view.totalIncome > 0 || view.totalExpenses > 0;
     if (!hasData) {
       return issues;
     }
 
     if (view.totalIncome == 0) {
-      // Expenses but no income → overspending/unstable situation
       if (view.totalExpenses > 0) {
         issues.add(
           BudgetIssue(

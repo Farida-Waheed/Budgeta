@@ -1,3 +1,5 @@
+// lib/features/tracking/data/in_memory_tracking_repository.dart
+
 import '../../../core/models/transaction.dart';
 import '../../../core/models/recurring_rule.dart';
 import 'tracking_repository.dart';
@@ -18,10 +20,11 @@ class InMemoryTrackingRepository implements TrackingRepository {
 
   List<Transaction> _txList(String userId) =>
       _transactionsByUser.putIfAbsent(userId, () => []);
+
   List<RecurringRule> _ruleList(String userId) =>
       _rulesByUser.putIfAbsent(userId, () => []);
 
-// ---------- TRANSACTIONS ----------
+  // ---------- TRANSACTIONS ----------
 
   @override
   Future<List<Transaction>> getTransactions({
@@ -71,7 +74,7 @@ class InMemoryTrackingRepository implements TrackingRepository {
     }
   }
 
-// ---------- RECURRING RULES ----------
+  // ---------- RECURRING RULES ----------
 
   @override
   Future<List<RecurringRule>> getRecurringRules(String userId) async {
