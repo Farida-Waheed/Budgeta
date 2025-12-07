@@ -44,26 +44,85 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
 
   @override
   Widget build(BuildContext context) {
-    final labels = ['Last 30 days', 'This month', 'All time'];
+    final filters = [
+      {'label': 'Last 30 days', 'icon': Icons.auto_graph_rounded},
+      {'label': 'This month', 'icon': Icons.calendar_today_rounded},
+      {'label': 'All time', 'icon': Icons.history_rounded},
+    ];
 
-    return Wrap(
-      spacing: 8,
-      children: List.generate(labels.length, (i) {
-        final isSelected = i == _selectedIndex;
-        return ChoiceChip(
-          label: Text(labels[i]),
-          selected: isSelected,
-          selectedColor: BudgetaColors.primary,
-          backgroundColor:
-              BudgetaColors.accentLight.withValues(alpha: 0.4),
-          labelStyle: TextStyle(
-            color: isSelected ? Colors.white : BudgetaColors.deep,
-            fontWeight:
-                isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-          onSelected: (_) => _updateSelection(i),
-        );
-      }),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(filters.length, (i) {
+          final isSelected = i == _selectedIndex;
+
+          return Padding(
+            padding: EdgeInsets.only(right: i == filters.length - 1 ? 0 : 8),
+            child: GestureDetector(
+              onTap: () => _updateSelection(i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(999),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: BudgetaColors.primary
+                                .withValues(alpha: 0.28),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : [],
+                  gradient: isSelected
+                      ? const LinearGradient(
+                          colors: [
+                            Color(0xFFFF4F8B),
+                            Color(0xFFB20F4E),
+                          ],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        )
+                      : null,
+                  color: !isSelected
+                      ? BudgetaColors.accentLight.withValues(alpha: 0.4)
+                      : null,
+                  border: Border.all(
+                    width: 1.2,
+                    color: isSelected
+                        ? BudgetaColors.primary
+                        : BudgetaColors.accentLight.withValues(alpha: 0.9),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      filters[i]['icon'] as IconData,
+                      size: 16,
+                      color:
+                          isSelected ? Colors.white : BudgetaColors.primary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      filters[i]['label'] as String,
+                      style: TextStyle(
+                        color:
+                            isSelected ? Colors.white : BudgetaColors.deep,
+                        fontWeight:
+                            isSelected ? FontWeight.w700 : FontWeight.w500,
+                        fontSize: 12.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
     );
   }
 }

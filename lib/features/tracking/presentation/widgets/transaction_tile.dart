@@ -1,3 +1,4 @@
+// lib/features/tracking/presentation/widgets/transaction_tile.dart
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
@@ -20,67 +21,121 @@ class TransactionTile extends StatelessWidget {
     final isExpense = transaction.type == TransactionType.expense;
     final sign = isExpense ? '-' : '+';
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    final amountColor =
+        isExpense ? BudgetaColors.primary : Colors.green.shade700;
+
+    final title = transaction.note ?? 'No note';
+    final subtitle = _capitalize(transaction.categoryId);
+    final dateString =
+        transaction.date.toLocal().toString().split(' ').first;
+
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: BudgetaColors.accentLight.withValues(alpha: 0.6),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12.withValues(alpha: 0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
           child: Row(
             children: [
+              // circular icon like the mockup
               Container(
-                width: 6,
-                height: 44,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: isExpense
-                      ? BudgetaColors.primary
-                      : Colors.green.shade600,
-                  borderRadius: BorderRadius.circular(12),
+                      ? BudgetaColors.accentLight.withValues(alpha: 0.5)
+                      : Colors.green.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isExpense
+                      ? Icons.trending_down_rounded
+                      : Icons.trending_up_rounded,
+                  color: amountColor,
+                  size: 22,
                 ),
               ),
               const SizedBox(width: 12),
+
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      transaction.note ?? 'No note',
+                      title,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${transaction.categoryId} • '
-                      '${transaction.date.toLocal().toString().split(' ').first}',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      dateString,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.black38,
+                      ),
                     ),
                   ],
                 ),
               ),
+
               const SizedBox(width: 12),
+
               Text(
                 '$sign${transaction.amount.toStringAsFixed(2)}',
                 style: TextStyle(
-                  color: isExpense
-                      ? BudgetaColors.primary
-                      : Colors.green.shade700,
-                  fontWeight: FontWeight.bold,
+                  color: amountColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
+
               const SizedBox(width: 4),
+
+              // delete / overflow button
               IconButton(
-                icon: const Icon(Icons.delete_outline),
-                color: Colors.redAccent,
-                tooltip: 'Delete transaction',
-                onPressed: onDelete,
+                icon: const Icon(Icons.more_vert, size: 20),
+                color: Colors.black45,
+                onPressed: onDelete == null
+                    ? null
+                    : () {
+                        // no await, because onDelete returns void
+                        onDelete!.call();
+                      },
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  String _capitalize(String s) {
+    if (s.isEmpty) return s;
+    return s[0].toUpperCase() + s.substring(1);
   }
 }

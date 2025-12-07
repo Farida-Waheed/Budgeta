@@ -125,16 +125,15 @@ class DashboardHomeScreen extends StatelessWidget {
                           view: view,
                           onCategoryTap:
                               (String categoryId, String displayName) async {
-                                final txs = await cubit.drillDownToCategory(
-                                  categoryId,
-                                );
-                                // ignore: use_build_context_synchronously
-                                _showCategoryTransactionsSheet(
-                                  context: context,
-                                  title: displayName,
-                                  transactions: txs,
-                                );
-                              },
+                            final txs =
+                                await cubit.drillDownToCategory(categoryId);
+                            // ignore: use_build_context_synchronously
+                            _showCategoryTransactionsSheet(
+                              context: context,
+                              title: displayName,
+                              transactions: txs,
+                            );
+                          },
                         ),
                         const SizedBox(height: 20),
 
@@ -146,14 +145,15 @@ class DashboardHomeScreen extends StatelessWidget {
                         _PresetsSection(
                           presets: state.presets,
                           onSavePreset: () async {
-                            final name = await _askPresetNameDialog(context);
+                            final name =
+                                await _askPresetNameDialog(context);
                             if (name == null || name.trim().isEmpty) return;
                             await cubit.savePreset(name.trim());
                           },
                           onApplyPreset:
                               (dash_repo.DashboardPreset preset) async {
-                                await cubit.applyPreset(preset);
-                              },
+                            await cubit.applyPreset(preset);
+                          },
                         ),
                         const SizedBox(height: 20),
 
@@ -400,7 +400,7 @@ class _DashboardHeader extends StatelessWidget {
 }
 
 /// ==========================================================
-/// QUICK STATS
+/// QUICK STATS  (styled like the reference screenshot)
 /// ==========================================================
 class _QuickStatsRow extends StatelessWidget {
   final DashboardView view;
@@ -428,8 +428,8 @@ class _QuickStatsRow extends StatelessWidget {
           children: [
             Expanded(
               child: _QuickStatCard(
-                icon: Icons.attach_money_rounded,
-                title: '${totalThisPeriod.toStringAsFixed(2)} EGP',
+                icon: Icons.currency_pound, // pound sign
+                title: 'E£${totalThisPeriod.toStringAsFixed(2)}',
                 subtitle: 'This Month',
               ),
             ),
@@ -462,13 +462,13 @@ class _QuickStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 96),
+      constraints: const BoxConstraints(minHeight: 110),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: BudgetaColors.accentLight.withValues(alpha: 0.7),
+          color: BudgetaColors.accentLight.withValues(alpha: 0.9),
           width: 1.2,
         ),
         boxShadow: [
@@ -479,38 +479,48 @@ class _QuickStatCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // top circular icon (same vibe as screenshot)
           Container(
-            padding: const EdgeInsets.all(8),
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
-              color: BudgetaColors.accentLight.withValues(alpha: 0.35),
               shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white,
+                  BudgetaColors.accentLight.withValues(alpha: 0.7),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
             ),
-            child: Icon(icon, size: 20, color: BudgetaColors.primary),
+            child: Icon(
+              icon,
+              size: 24,
+              color: BudgetaColors.primary,
+            ),
           ),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: BudgetaColors.deep,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  color: BudgetaColors.textMuted,
-                  fontSize: 11,
-                ),
-              ),
-            ],
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: const TextStyle(
+              color: BudgetaColors.deep,
+              fontWeight: FontWeight.w700,
+              fontSize: 15.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              color: BudgetaColors.textMuted,
+              fontSize: 11.5,
+            ),
           ),
         ],
       ),

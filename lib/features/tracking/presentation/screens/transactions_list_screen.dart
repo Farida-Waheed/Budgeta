@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../shared/bottom_nav.dart';
+import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
+import '../../../../shared/bottom_nav.dart';
+
 import '../../state/tracking_cubit.dart';
 import '../../../../core/models/transaction.dart';
 import '../widgets/transaction_tile.dart';
@@ -118,162 +120,304 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     await context.read<TrackingCubit>().clearAllUserData();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: BudgetaColors.background,
-      appBar: AppBar(
-        title: const Text('Transactions'),
-        backgroundColor: BudgetaColors.background,
-        foregroundColor: BudgetaColors.deep,
-        elevation: 0,
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.analytics_outlined),
-            tooltip: 'View spending report',
-            onPressed: _goToDashboardReports,
-          ),
-          IconButton(
-            icon: const Icon(Icons.repeat),
-            tooltip: 'Recurring & schedules',
-            onPressed: _openRecurring,
-          ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'clear') _clearAllData();
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(
-                value: 'clear',
-                child: Text('Clear demo & user data'),
-              ),
-            ],
-          ),
-        ],
+  // ---------------------------------------------------------------------------
+  // FILTERS (bottom sheet – keeps all use cases but keeps main UI clean)
+  // ---------------------------------------------------------------------------
+  Future<void> _openFiltersSheet() async {
+    TransactionType? tempType = _filterType;
+    String? tempCategory = _filterCategoryId;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 1),
-      body: Column(
-        children: [
-          const SizedBox(height: 8),
-          _buildTypeFilterRow(),
-          const SizedBox(height: 8),
-          CategoryChipList(
-            selectedCategoryId: _filterCategoryId,
-            onCategorySelected: (id) {
-              setState(() {
-                _filterCategoryId = id;
-              });
-            },
-            incomeOnly: false,
-            showAllChip: true,
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: _buildReviewCategoriesBanner(),
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: BlocBuilder<TrackingCubit, TrackingState>(
-              builder: (context, state) {
-                if (state is TrackingLoading || state is TrackingInitial) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (state is TrackingError) {
-                  return Center(child: Text('Error: ${state.message}'));
-                } else if (state is TrackingLoaded) {
-                  var txs = state.transactions;
-
-                  if (_filterType != null) {
-                    txs = txs
-                        .where((t) => t.type == _filterType)
-                        .toList();
-                  }
-
-                  if (_filterCategoryId != null) {
-                    txs = txs
-                        .where((t) => t.categoryId == _filterCategoryId)
-                        .toList();
-                  }
-
-                  if (txs.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No transactions match your filters yet.\n'
-                        'Try adding a new income or expense.',
-                        textAlign: TextAlign.center,
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding:
+                EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: StatefulBuilder(
+                builder: (ctx, setSheetState) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color:
+                              Colors.grey.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
-                    );
-                  }
-
-                  return ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    itemCount: txs.length,
-                    separatorBuilder: (_, index) =>
-                        const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final t = txs[index];
-                      return TransactionTile(
-                        transaction: t,
-                        onTap: () => _onEdit(t),
-                        onDelete: () => _onDelete(t),
-                      );
-                    },
+                      const Text(
+                        'Filters',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: BudgetaColors.deep,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Type filter
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildTypeChip(
+                            label: 'All',
+                            selected: tempType == null,
+                            onTap: () {
+                              setSheetState(() => tempType = null);
+                            },
+                          ),
+                          _buildTypeChip(
+                            label: 'Expenses',
+                            selected:
+                                tempType == TransactionType.expense,
+                            onTap: () {
+                              setSheetState(
+                                  () => tempType = TransactionType.expense);
+                            },
+                          ),
+                          _buildTypeChip(
+                            label: 'Income',
+                            selected:
+                                tempType == TransactionType.income,
+                            onTap: () {
+                              setSheetState(
+                                  () => tempType = TransactionType.income);
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Category',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelLarge
+                              ?.copyWith(color: BudgetaColors.deep),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      CategoryChipList(
+                        selectedCategoryId: tempCategory,
+                        onCategorySelected: (id) {
+                          setSheetState(() => tempCategory = id);
+                        },
+                        incomeOnly: false,
+                        showAllChip: true,
+                      ),
+                      const SizedBox(height: 16),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: BudgetaColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _filterType = tempType;
+                              _filterCategoryId = tempCategory;
+                            });
+                            Navigator.pop(ctx);
+                          },
+                          child: const Text('Apply filters'),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                   );
-                }
-                return const SizedBox.shrink();
-              },
+                },
+              ),
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildTypeFilterRow() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: BudgetaColors.accentLight),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  // ---------------------------------------------------------------------------
+  // UI
+  // ---------------------------------------------------------------------------
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: BudgetaColors.backgroundLight,
+      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 1),
+      floatingActionButton: const _AddTransactionFab(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      body: SafeArea(
+        child: Column(
           children: [
-            _buildTypeChip(
-              label: 'All',
-              selected: _filterType == null,
-              onTap: () {
-                setState(() {
-                  _filterType = null;
-                });
-              },
+            _TrackingHeader(
+              onOpenReports: _goToDashboardReports,
+              onOpenRecurring: _openRecurring,
+              onClearAll: _clearAllData,
             ),
-            _buildTypeChip(
-              label: 'Expenses',
-              selected: _filterType == TransactionType.expense,
-              onTap: () {
-                setState(() {
-                  _filterType = TransactionType.expense;
-                });
-              },
-            ),
-            _buildTypeChip(
-              label: 'Income',
-              selected: _filterType == TransactionType.income,
-              onTap: () {
-                setState(() {
-                  _filterType = TransactionType.income;
-                });
-              },
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: BudgetaColors.background,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(28),
+                    topRight: Radius.circular(28),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // All Transactions bar + filters summary
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: BudgetaColors.accentLight
+                            .withValues(alpha: 0.15),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(28),
+                          topRight: Radius.circular(28),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Text(
+                            'All Transactions 💖',
+                            style: TextStyle(
+                              color: BudgetaColors.deep,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const Spacer(),
+                          InkWell(
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: _openFiltersSheet,
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.filter_alt_outlined,
+                                  size: 18,
+                                  color: BudgetaColors.deep,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _currentFilterLabel(),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: BudgetaColors.deep,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 10, 20, 4),
+                      child: _buildReviewCategoriesBanner(),
+                    ),
+                    Expanded(
+                      child: BlocBuilder<TrackingCubit, TrackingState>(
+                        builder: (context, state) {
+                          if (state is TrackingLoading ||
+                              state is TrackingInitial) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          } else if (state is TrackingError) {
+                            return Center(
+                                child: Text('Error: ${state.message}'));
+                          } else if (state is TrackingLoaded) {
+                            var txs = state.transactions;
+
+                            if (_filterType != null) {
+                              txs = txs
+                                  .where((t) => t.type == _filterType)
+                                  .toList();
+                            }
+
+                            if (_filterCategoryId != null) {
+                              txs = txs
+                                  .where((t) =>
+                                      t.categoryId == _filterCategoryId)
+                                  .toList();
+                            }
+
+                            if (txs.isEmpty) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 24.0),
+                                  child: Text(
+                                    'No transactions match your filters yet.\n'
+                                    'Try adding a new income or expense.',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              );
+                            }
+
+                            return ListView.separated(
+                              padding: const EdgeInsets.fromLTRB(
+                                  20, 4, 20, 80),
+                              itemCount: txs.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 10),
+                              itemBuilder: (context, index) {
+                                final t = txs[index];
+                                return TransactionTile(
+                                  transaction: t,
+                                  onTap: () => _onEdit(t),
+                                  onDelete: () => _onDelete(t),
+                                );
+                              },
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  String _currentFilterLabel() {
+    final typeLabel = () {
+      if (_filterType == TransactionType.expense) return 'Expenses';
+      if (_filterType == TransactionType.income) return 'Income';
+      return 'All';
+    }();
+
+    final catLabel =
+        _filterCategoryId == null ? 'All categories' : _filterCategoryId!;
+    return '$typeLabel · $catLabel';
   }
 
   Widget _buildTypeChip({
@@ -287,8 +431,9 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
       selectedColor: BudgetaColors.accentLight,
       backgroundColor: BudgetaColors.background,
       labelStyle: TextStyle(
-        color:
-            selected ? BudgetaColors.deep : BudgetaColors.deep.withOpacity(0.7),
+        color: selected
+            ? BudgetaColors.deep
+            : BudgetaColors.deep.withValues(alpha: 0.7),
         fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
       ),
       side: BorderSide(
@@ -316,6 +461,142 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// HEADER + FAB (mirror dashboard style)
+// ---------------------------------------------------------------------------
+
+class _TrackingHeader extends StatelessWidget {
+  final VoidCallback onOpenReports;
+  final VoidCallback onOpenRecurring;
+  final VoidCallback onClearAll;
+
+  const _TrackingHeader({
+    required this.onOpenReports,
+    required this.onOpenRecurring,
+    required this.onClearAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF9A0E3A),
+            Color(0xFFFF4F8B),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Expense Tracking ✨',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Track every penny with sparkle!',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: 'View spending report',
+                onPressed: onOpenReports,
+                icon: const Icon(
+                  Icons.analytics_outlined,
+                  color: Colors.white,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Recurring & schedules',
+                onPressed: onOpenRecurring,
+                icon: const Icon(
+                  Icons.repeat,
+                  color: Colors.white,
+                ),
+              ),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_vert, color: Colors.white),
+                onSelected: (value) {
+                  if (value == 'clear') onClearAll();
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(
+                    value: 'clear',
+                    child: Text('Clear demo & user data'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddTransactionFab extends StatelessWidget {
+  const _AddTransactionFab();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(
+          context,
+          AppRoutes.addTransaction,
+          arguments: TransactionType.expense,
+        );
+      },
+      child: Container(
+        width: 58,
+        height: 58,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Color(0xFFFF4F8B), Color(0xFF9A0E3A)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 12,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Icon(Icons.add, color: Colors.white, size: 28),
+        ),
       ),
     );
   }

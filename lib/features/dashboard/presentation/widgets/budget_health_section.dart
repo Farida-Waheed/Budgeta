@@ -18,14 +18,14 @@ class BudgetHealthSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Budget health 🩺',
+          'Budget Checkup 🩺',
           style: TextStyle(
             color: BudgetaColors.deep,
             fontWeight: FontWeight.w700,
             fontSize: 16,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Column(
           children: [
             for (final issue in issues) _IssueCard(issue: issue),
@@ -41,14 +41,14 @@ class _IssueCard extends StatelessWidget {
 
   const _IssueCard({required this.issue});
 
-  Color _colorForSeverity(String s) {
+  Color _accentColor(String s) {
     switch (s.toLowerCase()) {
       case 'error':
-        return Colors.red;
+        return const Color(0xFFEB3B5A); // warm red
       case 'warning':
-        return Colors.orange;
+        return const Color(0xFFF5A623); // warm orange
       default:
-        return BudgetaColors.deep;
+        return BudgetaColors.primary;
     }
   }
 
@@ -63,33 +63,97 @@ class _IssueCard extends StatelessWidget {
     }
   }
 
+  String _labelForSeverity(String s) {
+    switch (s.toLowerCase()) {
+      case 'error':
+        return 'Critical alert';
+      case 'warning':
+        return 'Heads up';
+      default:
+        return 'Insight';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final color = _colorForSeverity(issue.severity);
+    final accent = _accentColor(issue.severity);
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(10),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.07),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.6)),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: accent.withOpacity(0.5),
+          width: 1.3,
+        ),
+        gradient: LinearGradient(
+          colors: [
+            Colors.white,
+            accent.withOpacity(0.06),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(_iconForSeverity(issue.severity),
-              size: 18, color: color),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              issue.message,
-              style: TextStyle(
-                fontSize: 13,
-                color: color,
-                fontWeight: FontWeight.w600,
+          // circular icon bubble
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white,
+                  accent.withOpacity(0.20),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
               ),
+            ),
+            child: Icon(
+              _iconForSeverity(issue.severity),
+              size: 22,
+              color: accent,
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // text column
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _labelForSeverity(issue.severity),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: accent,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  issue.message,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: BudgetaColors.deep,
+                    height: 1.4,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
