@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme.dart';
+import '../../../../shared/bottom_nav.dart';
 import '../../../../core/models/recurring_rule.dart';
 import '../../state/tracking_cubit.dart';
 
@@ -13,6 +14,8 @@ class RecurringTransactionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
+      // same bottom bar as Tracking tab
+      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 1),
       floatingActionButton: _AddRecurringFab(
         onPressed: () => _openAddOrEditRuleDialog(context),
       ),
@@ -20,7 +23,7 @@ class RecurringTransactionsScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            _RecurringHeader(
+            const _RecurringHeader(
               title: 'Recurring & Schedules',
               subtitle: 'Automate your financial habits ✨',
             ),
@@ -61,13 +64,16 @@ class RecurringTransactionsScreen extends StatelessWidget {
                                     'No recurring transactions yet.\n\n'
                                     'Use the + button to set up rent, salary or subscriptions.',
                                     textAlign: TextAlign.center,
-                                    style: TextStyle(color: BudgetaColors.deep),
+                                    style: TextStyle(
+                                      color: BudgetaColors.deep,
+                                    ),
                                   ),
                                 ),
                               );
                             }
                             return ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                              padding:
+                                  const EdgeInsets.fromLTRB(16, 0, 16, 80),
                               itemCount: rules.length,
                               itemBuilder: (context, index) {
                                 final r = rules[index];
@@ -95,7 +101,7 @@ class RecurringTransactionsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard() {
+  static Widget _buildInfoCard() {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -143,16 +149,15 @@ class RecurringTransactionsScreen extends StatelessWidget {
     BuildContext context, {
     RecurringRule? existing,
   }) {
-    final existingRule = existing;
-    final isEditing = existingRule != null;
+    final isEditing = existing != null;
 
     final amountController = TextEditingController(
-      text: existingRule != null ? existingRule.amount.toStringAsFixed(2) : '',
+      text: existing?.amount.toStringAsFixed(2) ?? '',
     );
 
     RecurringFrequency frequency =
-        existingRule?.frequency ?? RecurringFrequency.monthly;
-    String categoryId = existingRule?.categoryId ?? 'rent';
+        existing?.frequency ?? RecurringFrequency.monthly;
+    String categoryId = existing?.categoryId ?? 'rent';
 
     showDialog(
       context: context,
@@ -160,13 +165,10 @@ class RecurringTransactionsScreen extends StatelessWidget {
       builder: (ctx) {
         return Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 24,
-          ),
+          insetPadding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
           child: Center(
             child: Container(
-              // outer gradient frame – same vibe as dashboard header
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
@@ -182,7 +184,7 @@ class RecurringTransactionsScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              padding: const EdgeInsets.all(2), // tiny gradient border
+              padding: const EdgeInsets.all(2),
               child: Container(
                 decoration: BoxDecoration(
                   color: BudgetaColors.backgroundLight,
@@ -195,7 +197,6 @@ class RecurringTransactionsScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // drag handle
                         Center(
                           child: Container(
                             width: 48,
@@ -207,7 +208,6 @@ class RecurringTransactionsScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -245,9 +245,9 @@ class RecurringTransactionsScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 18),
 
+                        // Amount
                         const Text(
                           'Amount',
                           style: TextStyle(
@@ -258,20 +258,21 @@ class RecurringTransactionsScreen extends StatelessWidget {
                         const SizedBox(height: 6),
                         TextField(
                           controller: amountController,
-                          keyboardType: const TextInputType.numberWithOptions(
+                          keyboardType:
+                              const TextInputType.numberWithOptions(
                             decimal: true,
                           ),
                           decoration: InputDecoration(
                             filled: true,
                             fillColor: Colors.white,
-                            prefixIcon: const Icon(Icons.attach_money_rounded),
+                            prefixIcon:
+                                const Icon(Icons.attach_money_rounded),
                             hintText: '0.00',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(18),
                               borderSide: BorderSide(
-                                color: BudgetaColors.accentLight.withValues(
-                                  alpha: 0.6,
-                                ),
+                                color: BudgetaColors.accentLight
+                                    .withValues(alpha: 0.6),
                               ),
                             ),
                           ),
@@ -279,6 +280,7 @@ class RecurringTransactionsScreen extends StatelessWidget {
 
                         const SizedBox(height: 14),
 
+                        // Frequency
                         const Text(
                           'Frequency',
                           style: TextStyle(
@@ -295,9 +297,8 @@ class RecurringTransactionsScreen extends StatelessWidget {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(18),
                               borderSide: BorderSide(
-                                color: BudgetaColors.accentLight.withValues(
-                                  alpha: 0.6,
-                                ),
+                                color: BudgetaColors.accentLight
+                                    .withValues(alpha: 0.6),
                               ),
                             ),
                           ),
@@ -327,6 +328,7 @@ class RecurringTransactionsScreen extends StatelessWidget {
 
                         const SizedBox(height: 14),
 
+                        // Category
                         const Text(
                           'Category',
                           style: TextStyle(
@@ -343,9 +345,8 @@ class RecurringTransactionsScreen extends StatelessWidget {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(18),
                               borderSide: BorderSide(
-                                color: BudgetaColors.accentLight.withValues(
-                                  alpha: 0.6,
-                                ),
+                                color: BudgetaColors.accentLight
+                                    .withValues(alpha: 0.6),
                               ),
                             ),
                           ),
@@ -389,12 +390,15 @@ class RecurringTransactionsScreen extends StatelessWidget {
                               ),
                             ),
                             _GradientPrimaryButton(
-                              label: isEditing ? 'Save changes' : 'Save',
-                              onPressed: () {
+                              label:
+                                  isEditing ? 'Save changes' : 'Save',
+                              onPressed: () async {
                                 final raw = amountController.text.trim();
                                 final parsed = double.tryParse(raw);
+
                                 if (parsed == null || parsed <= 0) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(
                                     const SnackBar(
                                       content: Text(
                                         'Please enter a valid amount.',
@@ -404,20 +408,42 @@ class RecurringTransactionsScreen extends StatelessWidget {
                                   return;
                                 }
 
-                                // 👉 For now this is only UI.
-                                // Wire this to your TrackingCubit when
-                                // you add add/update methods.
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      isEditing
-                                          ? 'Recurring rule edited (demo only).'
-                                          : 'Recurring rule saved (demo only).',
-                                    ),
-                                  ),
-                                );
+                                final trackingCubit =
+                                    context.read<TrackingCubit>();
+                                final userId = trackingCubit.userId;
+                                final now = DateTime.now();
 
-                                Navigator.of(ctx).pop();
+                                if (isEditing && existing != null) {
+                                  final updatedRule = RecurringRule(
+                                    id: existing.id,
+                                    userId: existing.userId,
+                                    amount: parsed,
+                                    categoryId: categoryId,
+                                    frequency: frequency,
+                                    startDate: existing.startDate,
+                                    isActive: existing.isActive,
+                                  );
+                                  await trackingCubit
+                                      .updateExistingRecurringRule(
+                                          updatedRule);
+                                } else {
+                                  final newRule = RecurringRule(
+                                    id: now.millisecondsSinceEpoch
+                                        .toString(),
+                                    userId: userId,
+                                    amount: parsed,
+                                    categoryId: categoryId,
+                                    frequency: frequency,
+                                    startDate: now,
+                                    isActive: true,
+                                  );
+                                  await trackingCubit
+                                      .addNewRecurringRule(newRule);
+                                }
+
+                                if (context.mounted) {
+                                  Navigator.of(ctx).pop();
+                                }
                               },
                             ),
                           ],
@@ -436,22 +462,21 @@ class RecurringTransactionsScreen extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Custom Header Component
+// Header
 // ---------------------------------------------------------------------------
 
 class _RecurringHeader extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const _RecurringHeader({required this.title, required this.subtitle});
+  const _RecurringHeader({
+    required this.title,
+    required this.subtitle,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final headerHeight = screenHeight * 0.18;
-
     return Container(
-      height: headerHeight,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
@@ -463,18 +488,19 @@ class _RecurringHeader extends StatelessWidget {
           bottomRight: Radius.circular(28),
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                onPressed: () => Navigator.of(context).pop(),
+            children: const [
+              BackButton(color: Colors.white),
+              Icon(
+                Icons.repeat,
+                color: Colors.white,
+                size: 26,
               ),
-              const Icon(Icons.repeat, color: Colors.white, size: 28),
             ],
           ),
           const SizedBox(height: 10),
@@ -489,7 +515,10 @@ class _RecurringHeader extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: const TextStyle(color: Colors.white70, fontSize: 14),
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+            ),
           ),
         ],
       ),
@@ -498,7 +527,7 @@ class _RecurringHeader extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Custom FAB Component
+// Add FAB
 // ---------------------------------------------------------------------------
 
 class _AddRecurringFab extends StatelessWidget {
@@ -508,19 +537,8 @@ class _AddRecurringFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureRecognizer(onTap: onPressed);
-  }
-}
-
-class GestureRecognizer extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const GestureRecognizer({super.key, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onPressed,
       child: Container(
         width: 58,
         height: 58,
@@ -548,14 +566,17 @@ class GestureRecognizer extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Custom Tile Component
+// Tile
 // ---------------------------------------------------------------------------
 
 class _RecurringRuleTile extends StatelessWidget {
   final RecurringRule rule;
   final VoidCallback onEdit;
 
-  const _RecurringRuleTile({required this.rule, required this.onEdit});
+  const _RecurringRuleTile({
+    required this.rule,
+    required this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -578,11 +599,13 @@ class _RecurringRuleTile extends StatelessWidget {
       ),
       child: ListTile(
         onTap: onEdit,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
                 color: chipColor,
                 borderRadius: BorderRadius.circular(12),
@@ -607,7 +630,10 @@ class _RecurringRuleTile extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               rule.amount.toStringAsFixed(2),
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
             ),
           ],
         ),
@@ -640,7 +666,8 @@ class _RecurringRuleTile extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Delete recurring rule?'),
         content: Text(
           'Are you sure you want to delete this recurring transaction?\n'
@@ -656,7 +683,10 @@ class _RecurringRuleTile extends StatelessWidget {
               context.read<TrackingCubit>().deleteRecurringRule(rule.id);
               Navigator.pop(ctx);
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -678,14 +708,17 @@ class _RecurringRuleTile extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Shared gradient primary button (used in dialog)
+// Shared gradient primary button
 // ---------------------------------------------------------------------------
 
 class _GradientPrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
 
-  const _GradientPrimaryButton({required this.label, required this.onPressed});
+  const _GradientPrimaryButton({
+    required this.label,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -717,7 +750,10 @@ class _GradientPrimaryButton extends StatelessWidget {
           onPressed: onPressed,
           child: Text(
             label,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
           ),
         ),
       ),

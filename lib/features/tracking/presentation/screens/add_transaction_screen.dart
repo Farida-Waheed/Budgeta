@@ -6,9 +6,8 @@ import '../../../../core/models/transaction.dart';
 import '../../state/tracking_cubit.dart';
 import '../widgets/category_chip_list.dart';
 
-/// OPTIONAL full-screen wrapper (if you ever navigate to it as a page).
-/// The actual “design” is in [AddTransactionSheetContent] and the
-/// bottom-sheet helper [showAddTransactionBottomSheet].
+/// You can still push this as a full page if you want,
+/// but the design is mainly used as a bottom sheet.
 class AddTransactionScreen extends StatelessWidget {
   final TransactionType? preselectedType;
 
@@ -17,17 +16,14 @@ class AddTransactionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BudgetaColors.backgroundLight,
+      backgroundColor: Colors.black.withValues(alpha: 0.35),
       body: SafeArea(
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: AddTransactionSheetContent(
-                preselectedType: preselectedType,
-                onClose: () => Navigator.of(context).pop(),
-              ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: AddTransactionSheetContent(
+              preselectedType: preselectedType,
+              onClose: () => Navigator.of(context).pop(),
             ),
           ),
         ),
@@ -36,8 +32,7 @@ class AddTransactionScreen extends StatelessWidget {
   }
 }
 
-/// Content that looks like the Figma bottom-sheet.
-/// Reused both in full-screen and in showModalBottomSheet.
+/// The actual card / sheet that matches the mockup.
 class AddTransactionSheetContent extends StatelessWidget {
   final TransactionType? preselectedType;
   final VoidCallback? onClose;
@@ -53,22 +48,24 @@ class AddTransactionSheetContent extends StatelessWidget {
     return Material(
       color: BudgetaColors.backgroundLight,
       borderRadius: BorderRadius.circular(32),
+      elevation: 8,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 10),
-            // small handle at top
+            // top handle
             Container(
               width: 60,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.35),
+                color: Colors.grey.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
+            // title row
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -108,14 +105,14 @@ class AddTransactionSheetContent extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF1F5), // soft pink like mock
+                    color: Colors.white, // inner white card like mock
                     borderRadius: BorderRadius.circular(26),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -137,7 +134,7 @@ class AddTransactionSheetContent extends StatelessWidget {
   }
 }
 
-/// Reusable form widget (used in full screen & bottom sheet)
+/// Form used both in sheet & full-screen.
 class AddTransactionForm extends StatefulWidget {
   final TransactionType? preselectedType;
 
@@ -227,12 +224,9 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
   void _applySuggestedCategory() {
     if (_suggestedCategoryId == null) return;
-
     if (_type == TransactionType.expense && _suggestedCategoryId == 'salary') {
-      // don’t auto-apply salary on expense
       return;
     }
-
     setState(() => _selectedCategoryId = _suggestedCategoryId!);
   }
 
@@ -243,10 +237,11 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     final fieldTheme = Theme.of(context).copyWith(
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor:
+            const Color(0xFFFFF1F5), // soft pink field bg like reference
         labelStyle: const TextStyle(fontSize: 13),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide.none,
         ),
         contentPadding:
@@ -261,7 +256,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
         child: ListView(
           shrinkWrap: true,
           children: [
-            // segmented Expense / Income bar – like mockup
+            // Expense / Income segmented control
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
@@ -438,12 +433,15 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
             const SizedBox(height: 22),
 
+            // Bottom primary CTA
             SizedBox(
               height: 50,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
                   ),
                   borderRadius: BorderRadius.circular(24),
                 ),
@@ -473,7 +471,6 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
   Widget _buildSmartCategorySuggestion() {
     final isExpense = _type == TransactionType.expense;
-
     if (isExpense && _suggestedCategoryId == 'salary') {
       return const SizedBox.shrink();
     }
@@ -527,8 +524,8 @@ class _TypeSegment extends StatelessWidget {
           duration: const Duration(milliseconds: 160),
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
           decoration: BoxDecoration(
-            color: selected ? BudgetaColors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(18),
+            color: selected ? BudgetaColors.primary : Colors.white,
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: selected
                   ? BudgetaColors.primary
@@ -550,7 +547,7 @@ class _TypeSegment extends StatelessWidget {
   }
 }
 
-/// Helper to open the Figma-style bottom sheet from any screen.
+/// Helper for opening as a bottom sheet from any screen.
 Future<void> showAddTransactionBottomSheet(
   BuildContext context, {
   TransactionType? preselectedType,
@@ -566,7 +563,7 @@ Future<void> showAddTransactionBottomSheet(
           left: 8,
           right: 8,
           bottom: mq.viewInsets.bottom + 8,
-          top: mq.size.height * 0.25, // about 60–65% sheet height
+          top: mq.size.height * 0.25, // ~60–65% height sheet
         ),
         child: AddTransactionSheetContent(
           preselectedType: preselectedType,

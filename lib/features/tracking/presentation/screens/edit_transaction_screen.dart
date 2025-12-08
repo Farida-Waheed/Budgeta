@@ -137,12 +137,14 @@ class _EditTransactionSheetContentState
   Widget build(BuildContext context) {
     final isExpense = _type == TransactionType.expense;
 
+    // same field theme as AddTransaction sheet
     final fieldTheme = Theme.of(context).copyWith(
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: const Color(0xFFFFF1F5),
+        labelStyle: const TextStyle(fontSize: 13),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide.none,
         ),
         contentPadding:
@@ -153,21 +155,24 @@ class _EditTransactionSheetContentState
     return Material(
       color: BudgetaColors.backgroundLight,
       borderRadius: BorderRadius.circular(32),
+      elevation: 8,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 10),
+            // top handle
             Container(
               width: 60,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.35),
+                color: Colors.grey.withValues(alpha: 0.35),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             const SizedBox(height: 14),
+            // header row
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -207,14 +212,14 @@ class _EditTransactionSheetContentState
             Expanded(
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF1F5),
+                    color: Colors.white, // inner white card like Add sheet
                     borderRadius: BorderRadius.circular(26),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -228,73 +233,61 @@ class _EditTransactionSheetContentState
                         key: _formKey,
                         child: ListView(
                           children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFFE4ED),
-                                    borderRadius: BorderRadius.circular(22),
+                            // Expense / Income segmented control
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: BudgetaColors.backgroundLight,
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: Row(
+                                children: [
+                                  _TypeSegmentEdit(
+                                    label: 'Expense',
+                                    selected: isExpense,
+                                    onTap: () {
+                                      setState(() {
+                                        _type = TransactionType.expense;
+                                      });
+                                    },
                                   ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        isExpense
-                                            ? Icons.trending_down_rounded
-                                            : Icons.trending_up_rounded,
-                                        size: 16,
-                                        color: isExpense
-                                            ? BudgetaColors.primary
-                                            : Colors.green.shade700,
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        isExpense ? 'Expense' : 'Income',
-                                        style: TextStyle(
-                                          color: isExpense
-                                              ? BudgetaColors.primary
-                                              : Colors.green.shade700,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ],
+                                  const SizedBox(width: 6),
+                                  _TypeSegmentEdit(
+                                    label: 'Income',
+                                    selected: !isExpense,
+                                    onTap: () {
+                                      setState(() {
+                                        _type = TransactionType.income;
+                                      });
+                                    },
                                   ),
-                                ),
-                                const Spacer(),
-                                DropdownButton<TransactionType>(
-                                  value: _type,
-                                  underline: const SizedBox.shrink(),
-                                  items: const [
-                                    DropdownMenuItem(
-                                      value: TransactionType.expense,
-                                      child: Text('Expense'),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: TransactionType.income,
-                                      child: Text('Income'),
-                                    ),
-                                  ],
-                                  onChanged: (val) {
-                                    if (val != null) {
-                                      setState(() => _type = val);
-                                    }
-                                  },
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
+
                             const SizedBox(height: 20),
 
-                            // Amount
+                            // Amount label + field
+                            Text(
+                              'Amount',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(
+                                    color: BudgetaColors.deep,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            const SizedBox(height: 6),
                             TextFormField(
                               controller: _amountController,
                               keyboardType:
                                   const TextInputType.numberWithOptions(
                                       decimal: true),
                               decoration: const InputDecoration(
-                                labelText: 'Amount',
                                 prefixIcon:
                                     Icon(Icons.attach_money_rounded),
+                                hintText: '0.00',
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -307,24 +300,38 @@ class _EditTransactionSheetContentState
                                 return null;
                               },
                             ),
+
                             const SizedBox(height: 16),
 
-                            // Note
+                            // Note / description
+                            Text(
+                              'Description (Optional)',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.copyWith(
+                                    color: BudgetaColors.deep,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            const SizedBox(height: 6),
                             TextFormField(
                               controller: _noteController,
                               decoration: const InputDecoration(
-                                labelText: 'Note',
+                                hintText: 'What\'s this for?',
                                 prefixIcon:
                                     Icon(Icons.edit_note_outlined),
                               ),
                             ),
+
                             const SizedBox(height: 10),
 
                             if (_suggestedCategoryId != null)
                               _buildSmartCategorySuggestion(),
+
                             const SizedBox(height: 18),
 
-                            // Category
+                            // Category chips
                             Text(
                               'Category',
                               style: Theme.of(context)
@@ -346,6 +353,7 @@ class _EditTransactionSheetContentState
 
                             const SizedBox(height: 18),
 
+                            // Date row (kept same as before)
                             ListTile(
                               contentPadding: EdgeInsets.zero,
                               leading:
@@ -376,8 +384,10 @@ class _EditTransactionSheetContentState
                                   gradient: const LinearGradient(
                                     colors: [
                                       Color(0xFF9A0E3A),
-                                      Color(0xFFFF4F8B)
+                                      Color(0xFFFF4F8B),
                                     ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
                                   ),
                                   borderRadius: BorderRadius.circular(24),
                                 ),
@@ -468,4 +478,48 @@ Future<void> showEditTransactionBottomSheet(
       );
     },
   );
+}
+
+/// Local copy of the segmented control pill used for Expense / Income.
+class _TypeSegmentEdit extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _TypeSegmentEdit({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+          decoration: BoxDecoration(
+            color: selected ? BudgetaColors.primary : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected
+                  ? BudgetaColors.primary
+                  : BudgetaColors.accentLight,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? Colors.white : BudgetaColors.deep,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
