@@ -54,13 +54,10 @@ class _BudgetaBottomNavState extends State<BudgetaBottomNav> {
   }) async {
     setState(() => _isAddExpanded = false);
 
-    await Navigator.push(
+    // 🔥 use the bottom-sheet widget, NOT a full-screen route
+    await showAddTransactionBottomSheet(
       context,
-      MaterialPageRoute(
-        builder: (_) => AddTransactionScreen(
-          preselectedType: preselectedType,
-        ),
-      ),
+      preselectedType: preselectedType,
     );
   }
 
@@ -102,7 +99,7 @@ class _BudgetaBottomNavState extends State<BudgetaBottomNav> {
                     _buildNavItem(
                       context,
                       index: 1,
-                      icon: Icons.list_alt_outlined,
+                      icon: Icons.receipt_long, // nicer tracking icon
                       label: 'Tracking',
                     ),
                     _buildNavItem(
@@ -114,19 +111,19 @@ class _BudgetaBottomNavState extends State<BudgetaBottomNav> {
                     _buildNavItem(
                       context,
                       index: 3,
-                      icon: Icons.psychology_outlined,
+                      icon: Icons.auto_awesome, // AI / coach vibe
                       label: 'Coach',
                     ),
                     _buildNavItem(
                       context,
                       index: 4,
-                      icon: Icons.flag_outlined,
+                      icon: Icons.flag_rounded,
                       label: 'Challenges',
                     ),
                     _buildNavItem(
                       context,
                       index: 5,
-                      icon: Icons.groups_outlined,
+                      icon: Icons.group,
                       label: 'Community',
                     ),
                   ],
@@ -238,7 +235,6 @@ class _BudgetaBottomNavState extends State<BudgetaBottomNav> {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                // FIX deprecation: use withValues instead of withOpacity
                 color: Colors.black.withValues(alpha: 0.06),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
@@ -247,7 +243,7 @@ class _BudgetaBottomNavState extends State<BudgetaBottomNav> {
           ),
           child: Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               color: BudgetaColors.deep,
               fontWeight: FontWeight.w600,
               fontSize: 13,
