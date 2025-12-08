@@ -21,13 +21,19 @@ class TransactionTile extends StatelessWidget {
     final isExpense = transaction.type == TransactionType.expense;
     final sign = isExpense ? '-' : '+';
 
-    final amountColor =
-        isExpense ? BudgetaColors.primary : Colors.green.shade700;
+    final amountColor = isExpense
+        ? BudgetaColors.primary
+        : Colors.green.shade700;
 
     final title = transaction.note ?? 'No note';
     final subtitle = _capitalize(transaction.categoryId);
-    final dateString =
-        transaction.date.toLocal().toString().split(' ').first;
+    final dateString = transaction.date.toLocal().toString().split(' ').first;
+
+    // Simple MVP logic: if note contains "Receipt attached",
+    // show a small paperclip icon.
+    final hasReceipt = (transaction.note ?? '').toLowerCase().contains(
+      'receipt attached',
+    );
 
     return Material(
       color: Colors.transparent,
@@ -76,12 +82,27 @@ class TransactionTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        if (hasReceipt) ...[
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.attachment_rounded,
+                            size: 16,
+                            color: Colors.grey,
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -116,14 +137,12 @@ class TransactionTile extends StatelessWidget {
 
               const SizedBox(width: 4),
 
-              // delete / overflow button
               IconButton(
                 icon: const Icon(Icons.more_vert, size: 20),
                 color: Colors.black45,
                 onPressed: onDelete == null
                     ? null
                     : () {
-                        // no await, because onDelete returns void
                         onDelete!.call();
                       },
               ),
