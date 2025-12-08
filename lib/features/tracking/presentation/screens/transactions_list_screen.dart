@@ -121,7 +121,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
   }
 
   // ---------------------------------------------------------------------------
-  // FILTERS (bottom sheet – keeps all use cases but keeps main UI clean)
+  // FILTERS (bottom sheet)
   // ---------------------------------------------------------------------------
   Future<void> _openFiltersSheet() async {
     TransactionType? tempType = _filterType;
@@ -151,8 +151,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          color:
-                              Colors.grey.withValues(alpha: 0.5),
+                          color: Colors.grey.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -165,7 +164,6 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Type filter
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -178,8 +176,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                           ),
                           _buildTypeChip(
                             label: 'Expenses',
-                            selected:
-                                tempType == TransactionType.expense,
+                            selected: tempType == TransactionType.expense,
                             onTap: () {
                               setSheetState(
                                   () => tempType = TransactionType.expense);
@@ -187,8 +184,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                           ),
                           _buildTypeChip(
                             label: 'Income',
-                            selected:
-                                tempType == TransactionType.income,
+                            selected: tempType == TransactionType.income,
                             onTap: () {
                               setSheetState(
                                   () => tempType = TransactionType.income);
@@ -287,8 +283,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: BudgetaColors.accentLight
-                            .withValues(alpha: 0.15),
+                        color: BudgetaColors.accentLight.withValues(alpha: 0.15),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(28),
                           topRight: Radius.circular(28),

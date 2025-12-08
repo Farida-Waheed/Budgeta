@@ -33,8 +33,17 @@ abstract class TrackingRepository {
   /// RECURRING RULES
   /// -------------------------------
   Future<List<RecurringRule>> getRecurringRules(String userId);
+
+  /// Create a new recurring rule (rent, salary, subscription, etc.).
   Future<void> addRecurringRule(RecurringRule rule);
+
+  /// Edit an existing recurring rule (change amount, frequency, category).
+  Future<void> updateRecurringRule(RecurringRule rule);
+
+  /// Pause / resume a rule without deleting it.
   Future<void> pauseRecurringRule(String ruleId);
+
+  /// Delete a recurring rule completely.
   Future<void> deleteRecurringRule(String ruleId);
 
   /// -------------------------------

@@ -41,33 +41,54 @@ class _InsightCard extends StatelessWidget {
 
   const _InsightCard({required this.insight});
 
-  // Map enum → label + icon
-  String _labelForType(InsightType type) {
+  // --- Helper Functions using InsightType ---
+
+  Color _colorForType(InsightType type) {
     switch (type) {
-      case InsightType.tip:
-        return 'Daily Tip';
+      case InsightType.alert:
+      case InsightType.overspending:
+        return const Color(0xFFEB3B5A); // warm red
       case InsightType.trend:
-        return 'Trend';
+        return const Color(0xFFF5A623); // warm orange
+      case InsightType.tip:
       default:
-        return 'Insight';
+        return BudgetaColors.primary; // primary pink
     }
   }
 
   IconData _iconForType(InsightType type) {
     switch (type) {
-      case InsightType.tip:
-        return Icons.auto_awesome_rounded;
+      case InsightType.alert:
+      case InsightType.overspending:
+        return Icons.error_outline_rounded;
       case InsightType.trend:
-        return Icons.trending_up_rounded;
+        return Icons.auto_graph_rounded; 
+      case InsightType.tip:
       default:
         return Icons.lightbulb_outline_rounded;
     }
   }
 
+  String _labelForType(InsightType type) {
+    switch (type) {
+      case InsightType.overspending:
+        return 'Overspending Alert';
+      case InsightType.alert:
+        return 'Critical Alert';
+      case InsightType.trend:
+        return 'Spending Trend';
+      case InsightType.tip:
+      default:
+        return 'Daily Insight';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final label = _labelForType(insight.type);
-    final icon = _iconForType(insight.type);
+    final InsightType type = insight.type;
+    final Color accentColor = _colorForType(type);
+    final String label = _labelForType(type);
+    final IconData icon = _iconForType(type);
 
     return Container(
       width: double.infinity,
@@ -88,37 +109,41 @@ class _InsightCard extends StatelessWidget {
           ),
         ],
       ),
+
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // left circular icon like "Coffee Spending Alert"
+          // Left circular icon bubble (Standardized theme)
           Container(
-            width: 42,
-            height: 42,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
                 colors: [
                   Colors.white,
-                  BudgetaColors.accentLight.withValues(alpha: 0.7),
+                  BudgetaColors.accentLight.withValues(alpha: 0.7), // Standard light accent
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
               ),
             ),
-            child: Icon(
-              icon,
-              size: 22,
-              color: BudgetaColors.primary,
+            child: Center(
+              child: Icon(
+                icon,
+                size: 22,
+                color: accentColor, // Icon color matches the type
+              ),
             ),
           ),
           const SizedBox(width: 12),
 
-          // right: title + label + description
+          // Right side: title + small label + description
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Title (big & bold)
                 Text(
                   insight.title,
                   maxLines: 2,
@@ -130,19 +155,24 @@ class _InsightCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
+
+                // Tiny label under title (in accent color)
                 Text(
                   label,
-                  style: const TextStyle(
-                    color: BudgetaColors.textMuted,
+                  style: TextStyle(
+                    color: accentColor, // Label color matches the type
                     fontSize: 11,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 6),
+
+                // Description (The main message)
                 Text(
                   insight.description,
                   style: const TextStyle(
                     color: BudgetaColors.textMuted,
-                    fontSize: 12,
+                    fontSize: 12.5, // Slightly larger for readability
                     height: 1.4,
                   ),
                 ),

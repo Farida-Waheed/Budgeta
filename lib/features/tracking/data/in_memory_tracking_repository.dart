@@ -86,6 +86,16 @@ class InMemoryTrackingRepository implements TrackingRepository {
     _ruleList(rule.userId).add(rule);
   }
 
+  /// New: edit an existing recurring rule.
+  @override
+  Future<void> updateRecurringRule(RecurringRule rule) async {
+    final list = _ruleList(rule.userId);
+    final index = list.indexWhere((r) => r.id == rule.id);
+    if (index != -1) {
+      list[index] = rule;
+    }
+  }
+
   @override
   Future<void> pauseRecurringRule(String ruleId) async {
     for (final entry in _rulesByUser.entries) {

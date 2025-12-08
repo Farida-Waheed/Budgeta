@@ -69,6 +69,7 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
+                            // Selected button shadow is standard
                             color: BudgetaColors.primary
                                 .withValues(alpha: 0.28),
                             blurRadius: 10,
@@ -77,6 +78,7 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
                         ]
                       : [],
                   gradient: isSelected
+                      // Selected button gradient is standard
                       ? const LinearGradient(
                           colors: [
                             Color(0xFFFF4F8B),
@@ -87,12 +89,14 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
                         )
                       : null,
                   color: !isSelected
-                      ? BudgetaColors.accentLight.withValues(alpha: 0.4)
+                      // 💡 FIX: Unselected color is now very light, almost white
+                      ? BudgetaColors.accentLight.withValues(alpha: 0.1) 
                       : null,
                   border: Border.all(
                     width: 1.2,
                     color: isSelected
                         ? BudgetaColors.primary
+                        // Unselected border is light, subtle, and consistent
                         : BudgetaColors.accentLight.withValues(alpha: 0.9),
                   ),
                 ),

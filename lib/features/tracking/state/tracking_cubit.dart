@@ -63,6 +63,16 @@ class TrackingCubit extends Cubit<TrackingState> {
     }
   }
 
+  /// New: edit an existing recurring rule (amount / frequency / category).
+  Future<void> updateExistingRecurringRule(RecurringRule rule) async {
+    try {
+      await repository.updateRecurringRule(rule);
+      await loadTransactions();
+    } catch (e) {
+      emit(TrackingError(e.toString()));
+    }
+  }
+
   Future<void> toggleRecurringRule(String ruleId) async {
     try {
       await repository.pauseRecurringRule(ruleId);
