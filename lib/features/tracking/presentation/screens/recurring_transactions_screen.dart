@@ -1,9 +1,9 @@
+// lib/features/tracking/presentation/screens/recurring_transactions_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../core/models/recurring_rule.dart';
-import '../../../../shared/bottom_nav.dart';
 import '../../state/tracking_cubit.dart';
 
 class RecurringTransactionsScreen extends StatelessWidget {
@@ -13,15 +13,17 @@ class RecurringTransactionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
-      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 1),
       floatingActionButton: _AddRecurringFab(
-        onPressed: () => _openAddRuleDialog(context),
+        onPressed: () => _openAddOrEditRuleDialog(context),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         child: Column(
           children: [
-            const _RecurringHeader(),
+            _RecurringHeader(
+              title: 'Recurring & Schedules',
+              subtitle: 'Automate your financial habits ✨',
+            ),
             Expanded(
               child: Container(
                 decoration: const BoxDecoration(
@@ -43,34 +45,39 @@ class RecurringTransactionsScreen extends StatelessWidget {
                           if (state is TrackingLoading ||
                               state is TrackingInitial) {
                             return const Center(
-                                child: CircularProgressIndicator());
+                              child: CircularProgressIndicator(),
+                            );
                           } else if (state is TrackingError) {
                             return Center(
-                                child: Text('Error: ${state.message}'));
+                              child: Text('Error: ${state.message}'),
+                            );
                           } else if (state is TrackingLoaded) {
                             final rules = state.recurringRules;
                             if (rules.isEmpty) {
                               return const Center(
                                 child: Padding(
-                                  padding:
-                                      EdgeInsets.symmetric(horizontal: 24),
+                                  padding: EdgeInsets.symmetric(horizontal: 24),
                                   child: Text(
                                     'No recurring transactions yet.\n\n'
                                     'Use the + button to set up rent, salary or subscriptions.',
                                     textAlign: TextAlign.center,
-                                    style:
-                                        TextStyle(color: BudgetaColors.deep),
+                                    style: TextStyle(color: BudgetaColors.deep),
                                   ),
                                 ),
                               );
                             }
                             return ListView.builder(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
                               itemCount: rules.length,
                               itemBuilder: (context, index) {
                                 final r = rules[index];
-                                return _RecurringRuleTile(rule: r);
+                                return _RecurringRuleTile(
+                                  rule: r,
+                                  onEdit: () => _openAddOrEditRuleDialog(
+                                    context,
+                                    existing: r,
+                                  ),
+                                );
                               },
                             );
                           }
@@ -88,7 +95,7 @@ class RecurringTransactionsScreen extends StatelessWidget {
     );
   }
 
-  static Widget _buildInfoCard() {
+  Widget _buildInfoCard() {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -130,221 +137,297 @@ class RecurringTransactionsScreen extends StatelessWidget {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Add recurring dialog (same logic as before)
-  // ---------------------------------------------------------------------------
-  static void _openAddRuleDialog(BuildContext context) {
-    final amountController = TextEditingController();
-    RecurringFrequency frequency = RecurringFrequency.monthly;
-    String categoryId = 'rent';
-    bool customCategory = false;
-    final customCategoryController = TextEditingController();
+  /// Opens the dialog in either "add" or "edit" mode.
+  /// If [existing] is null → Add, otherwise Edit.
+  void _openAddOrEditRuleDialog(
+    BuildContext context, {
+    RecurringRule? existing,
+  }) {
+    final existingRule = existing;
+    final isEditing = existingRule != null;
+
+    final amountController = TextEditingController(
+      text: existingRule != null ? existingRule.amount.toStringAsFixed(2) : '',
+    );
+
+    RecurringFrequency frequency =
+        existingRule?.frequency ?? RecurringFrequency.monthly;
+    String categoryId = existingRule?.categoryId ?? 'rent';
 
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (ctx) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-                  primary: BudgetaColors.primary,
-                ),
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 24,
           ),
-          child: AlertDialog(
-            backgroundColor: BudgetaColors.background,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-            titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-            contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
-            titleTextStyle: const TextStyle(
-              color: BudgetaColors.deep,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
-            contentTextStyle: const TextStyle(
-              color: BudgetaColors.deep,
-              fontSize: 14,
-            ),
-            title: const Text('Add Recurring Transaction'),
-            content: StatefulBuilder(
-              builder: (context, setState) {
-                return SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextField(
-                        controller: amountController,
-                        keyboardType:
-                            const TextInputType.numberWithOptions(
-                                decimal: true),
-                        decoration: const InputDecoration(
-                          labelText: 'Amount',
+          child: Center(
+            child: Container(
+              // outer gradient frame – same vibe as dashboard header
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.25),
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(2), // tiny gradient border
+              child: Container(
+                decoration: BoxDecoration(
+                  color: BudgetaColors.backgroundLight,
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                child: StatefulBuilder(
+                  builder: (ctx, setSheetState) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // drag handle
+                        Center(
+                          child: Container(
+                            width: 48,
+                            height: 4,
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.7),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<RecurringFrequency>(
-                        value: frequency,
-                        decoration: const InputDecoration(
-                          labelText: 'Frequency',
+
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isEditing
+                                        ? 'Edit Recurring Transaction ✨'
+                                        : 'Add Recurring Transaction ✨',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: BudgetaColors.deep,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  const Text(
+                                    'Automate your money habits with a few taps.',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: BudgetaColors.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.close_rounded,
+                                color: BudgetaColors.deep,
+                              ),
+                              onPressed: () => Navigator.of(ctx).pop(),
+                            ),
+                          ],
                         ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: RecurringFrequency.daily,
-                            child: Text('Daily'),
+
+                        const SizedBox(height: 18),
+
+                        const Text(
+                          'Amount',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: BudgetaColors.deep,
                           ),
-                          DropdownMenuItem(
-                            value: RecurringFrequency.weekly,
-                            child: Text('Weekly'),
-                          ),
-                          DropdownMenuItem(
-                            value: RecurringFrequency.monthly,
-                            child: Text('Monthly'),
-                          ),
-                          DropdownMenuItem(
-                            value: RecurringFrequency.yearly,
-                            child: Text('Yearly'),
-                          ),
-                        ],
-                        onChanged: (f) {
-                          if (f != null) setState(() => frequency = f);
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        value: categoryId,
-                        decoration: const InputDecoration(
-                          labelText: 'Category',
                         ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'rent',
-                            child: Text('Rent'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'salary',
-                            child: Text('Salary'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'subscription',
-                            child: Text('Subscription'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'transport',
-                            child: Text('Transport'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'custom',
-                            child: Text('Other…'),
-                          ),
-                        ],
-                        onChanged: (c) {
-                          if (c == null) return;
-                          if (c == 'custom') {
-                            setState(() {
-                              customCategory = true;
-                            });
-                          } else {
-                            setState(() {
-                              customCategory = false;
-                              categoryId = c;
-                            });
-                          }
-                        },
-                      ),
-                      if (customCategory) ...[
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         TextField(
-                          controller: customCategoryController,
-                          decoration: const InputDecoration(
-                            labelText: 'Custom category name',
+                          controller: amountController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
                           ),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            prefixIcon: const Icon(Icons.attach_money_rounded),
+                            hintText: '0.00',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(18),
+                              borderSide: BorderSide(
+                                color: BudgetaColors.accentLight.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        const Text(
+                          'Frequency',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: BudgetaColors.deep,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        DropdownButtonFormField<RecurringFrequency>(
+                          initialValue: frequency,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(18),
+                              borderSide: BorderSide(
+                                color: BudgetaColors.accentLight.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                            ),
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: RecurringFrequency.daily,
+                              child: Text('Daily'),
+                            ),
+                            DropdownMenuItem(
+                              value: RecurringFrequency.weekly,
+                              child: Text('Weekly'),
+                            ),
+                            DropdownMenuItem(
+                              value: RecurringFrequency.monthly,
+                              child: Text('Monthly'),
+                            ),
+                            DropdownMenuItem(
+                              value: RecurringFrequency.yearly,
+                              child: Text('Yearly'),
+                            ),
+                          ],
+                          onChanged: (val) {
+                            if (val == null) return;
+                            setSheetState(() => frequency = val);
+                          },
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        const Text(
+                          'Category',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: BudgetaColors.deep,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        DropdownButtonFormField<String>(
+                          initialValue: categoryId,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(18),
+                              borderSide: BorderSide(
+                                color: BudgetaColors.accentLight.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                            ),
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'rent',
+                              child: Text('Rent'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'salary',
+                              child: Text('Salary'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'subscription',
+                              child: Text('Subscription'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'transport',
+                              child: Text('Transport'),
+                            ),
+                          ],
+                          onChanged: (val) {
+                            if (val == null) return;
+                            setSheetState(() => categoryId = val);
+                          },
+                        ),
+
+                        const SizedBox(height: 22),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  color: BudgetaColors.textMuted,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            _GradientPrimaryButton(
+                              label: isEditing ? 'Save changes' : 'Save',
+                              onPressed: () {
+                                final raw = amountController.text.trim();
+                                final parsed = double.tryParse(raw);
+                                if (parsed == null || parsed <= 0) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Please enter a valid amount.',
+                                      ),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                // 👉 For now this is only UI.
+                                // Wire this to your TrackingCubit when
+                                // you add add/update methods.
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isEditing
+                                          ? 'Recurring rule edited (demo only).'
+                                          : 'Recurring rule saved (demo only).',
+                                    ),
+                                  ),
+                                );
+
+                                Navigator.of(ctx).pop();
+                              },
+                            ),
+                          ],
                         ),
                       ],
-                    ],
-                  ),
-                );
-              },
-            ),
-            actionsAlignment: MainAxisAlignment.spaceBetween,
-            actionsPadding: const EdgeInsets.only(
-              right: 16,
-              bottom: 16,
-              left: 16,
-              top: 8,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(
-                    color: BudgetaColors.deep,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: BudgetaColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
-                ),
-                onPressed: () {
-                  final amount = double.tryParse(amountController.text);
-                  if (amount == null || amount <= 0) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Enter a valid amount'),
-                      ),
                     );
-                    return;
-                  }
-
-                  String finalCategoryId = categoryId;
-                  if (customCategory) {
-                    final name =
-                        customCategoryController.text.trim();
-                    if (name.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content:
-                              Text('Enter a custom category name'),
-                        ),
-                      );
-                      return;
-                    }
-                    finalCategoryId = name
-                        .toLowerCase()
-                        .replaceAll(RegExp(r'\s+'), '_');
-                  }
-
-                  final cubit = context.read<TrackingCubit>();
-                  final rule = RecurringRule(
-                    id: DateTime.now()
-                        .millisecondsSinceEpoch
-                        .toString(),
-                    userId: cubit.userId,
-                    amount: amount,
-                    startDate: DateTime.now(),
-                    frequency: frequency,
-                    categoryId: finalCategoryId,
-                  );
-
-                  cubit.addNewRecurringRule(rule);
-                  Navigator.pop(ctx);
-                },
-                child: const Text(
-                  'Save',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                  },
                 ),
               ),
-            ],
+            ),
           ),
         );
       },
@@ -353,15 +436,22 @@ class RecurringTransactionsScreen extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Header (same vibe as tracking header, but with back arrow)
+// Custom Header Component
 // ---------------------------------------------------------------------------
 
 class _RecurringHeader extends StatelessWidget {
-  const _RecurringHeader();
+  final String title;
+  final String subtitle;
+
+  const _RecurringHeader({required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final headerHeight = screenHeight * 0.18;
+
     return Container(
+      height: headerHeight,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
@@ -373,43 +463,33 @@ class _RecurringHeader extends StatelessWidget {
           bottomRight: Radius.circular(28),
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white,
-                ),
+                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+                onPressed: () => Navigator.of(context).pop(),
               ),
-              const Spacer(),
-              const Icon(
-                Icons.repeat,
-                color: Colors.white,
-                size: 26,
-              ),
+              const Icon(Icons.repeat, color: Colors.white, size: 28),
             ],
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Recurring & Schedules',
-            style: TextStyle(
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: const TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 26,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Automate your financial habits ✨',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 13,
-            ),
+          Text(
+            subtitle,
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
           ),
         ],
       ),
@@ -418,7 +498,7 @@ class _RecurringHeader extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// FAB and tile
+// Custom FAB Component
 // ---------------------------------------------------------------------------
 
 class _AddRecurringFab extends StatelessWidget {
@@ -428,8 +508,19 @@ class _AddRecurringFab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return GestureRecognizer(onTap: onPressed);
+  }
+}
+
+class GestureRecognizer extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const GestureRecognizer({super.key, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onPressed,
+      onTap: onTap,
       child: Container(
         width: 58,
         height: 58,
@@ -456,10 +547,15 @@ class _AddRecurringFab extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Custom Tile Component
+// ---------------------------------------------------------------------------
+
 class _RecurringRuleTile extends StatelessWidget {
   final RecurringRule rule;
+  final VoidCallback onEdit;
 
-  const _RecurringRuleTile({required this.rule});
+  const _RecurringRuleTile({required this.rule, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
@@ -481,13 +577,12 @@ class _RecurringRuleTile extends StatelessWidget {
         ),
       ),
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        onTap: onEdit,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         title: Row(
           children: [
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
                 color: chipColor,
                 borderRadius: BorderRadius.circular(12),
@@ -512,10 +607,7 @@ class _RecurringRuleTile extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               rule.amount.toStringAsFixed(2),
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 14,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
             ),
           ],
         ),
@@ -564,10 +656,7 @@ class _RecurringRuleTile extends StatelessWidget {
               context.read<TrackingCubit>().deleteRecurringRule(rule.id);
               Navigator.pop(ctx);
             },
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -585,5 +674,53 @@ class _RecurringRuleTile extends StatelessWidget {
       case RecurringFrequency.yearly:
         return 'Yearly';
     }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Shared gradient primary button (used in dialog)
+// ---------------------------------------------------------------------------
+
+class _GradientPrimaryButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+
+  const _GradientPrimaryButton({required this.label, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 46,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.20),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: TextButton(
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+          onPressed: onPressed,
+          child: Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+          ),
+        ),
+      ),
+    );
   }
 }

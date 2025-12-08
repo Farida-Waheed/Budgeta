@@ -4,12 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
 import '../../../../shared/bottom_nav.dart';
-
-import '../../state/tracking_cubit.dart';
 import '../../../../core/models/transaction.dart';
+import '../../state/tracking_cubit.dart';
+
 import '../widgets/transaction_tile.dart';
 import '../widgets/category_chip_list.dart';
-
+import 'add_transaction_screen.dart';
 import 'edit_transaction_screen.dart';
 import 'recurring_transactions_screen.dart';
 
@@ -84,7 +84,6 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
   }
 
   void _goToDashboardReports() {
-    // For now just pop back to main (dashboard tab)
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
@@ -94,10 +93,10 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
       builder: (ctx) => AlertDialog(
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Clear all tracking data?'),
+        title: const Text('Reset tracking data?'),
         content: const Text(
-          'This will remove the demo examples and any transactions/recurring '
-          'rules you added for this user.',
+          'This will remove all sample and user transactions/recurring rules '
+          'for this profile.',
         ),
         actions: [
           TextButton(
@@ -107,7 +106,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text(
-              'Clear',
+              'Reset',
               style: TextStyle(color: Colors.red),
             ),
           ),
@@ -120,9 +119,8 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     await context.read<TrackingCubit>().clearAllUserData();
   }
 
-  // ---------------------------------------------------------------------------
-  // FILTERS (bottom sheet)
-  // ---------------------------------------------------------------------------
+  // ---------------- FILTERS SHEET ----------------
+
   Future<void> _openFiltersSheet() async {
     TransactionType? tempType = _filterType;
     String? tempCategory = _filterCategoryId;
@@ -245,15 +243,23 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // UI
-  // ---------------------------------------------------------------------------
+  // ---------------- UI ----------------
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
       bottomNavigationBar: const BudgetaBottomNav(currentIndex: 1),
-      floatingActionButton: const _AddTransactionFab(),
+      floatingActionButton: _ExpandableAddFab(
+        onAddExpense: () => showAddTransactionBottomSheet(
+          context,
+          preselectedType: TransactionType.expense,
+        ),
+        onAddIncome: () => showAddTransactionBottomSheet(
+          context,
+          preselectedType: TransactionType.income,
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: SafeArea(
         child: Column(
@@ -283,7 +289,8 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: BudgetaColors.accentLight.withValues(alpha: 0.15),
+                        color: BudgetaColors.accentLight
+                            .withValues(alpha: 0.15),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(28),
                           topRight: Radius.circular(28),
@@ -399,9 +406,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------------------------------
+  // ---------------- Helpers ----------------
 
   String _currentFilterLabel() {
     final typeLabel = () {
@@ -461,9 +466,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// HEADER + FAB (mirror dashboard style)
-// ---------------------------------------------------------------------------
+// ---------------- HEADER ----------------
 
 class _TrackingHeader extends StatelessWidget {
   final VoidCallback onOpenReports;
@@ -493,62 +496,57 @@ class _TrackingHeader extends StatelessWidget {
           bottomRight: Radius.circular(28),
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
+      child: Row(
         children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Expense Tracking ✨',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Track every penny with sparkle!',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                tooltip: 'View spending report',
-                onPressed: onOpenReports,
-                icon: const Icon(
-                  Icons.analytics_outlined,
-                  color: Colors.white,
-                ),
-              ),
-              IconButton(
-                tooltip: 'Recurring & schedules',
-                onPressed: onOpenRecurring,
-                icon: const Icon(
-                  Icons.repeat,
-                  color: Colors.white,
-                ),
-              ),
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, color: Colors.white),
-                onSelected: (value) {
-                  if (value == 'clear') onClearAll();
-                },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(
-                    value: 'clear',
-                    child: Text('Clear demo & user data'),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Expense Tracking ✨',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
                   ),
-                ],
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Track every penny with sparkle!',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'View spending report',
+            onPressed: onOpenReports,
+            icon: const Icon(
+              Icons.analytics_outlined,
+              color: Colors.white,
+            ),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            onSelected: (value) {
+              if (value == 'recurring') {
+                onOpenRecurring();
+              } else if (value == 'reset') {
+                onClearAll();
+              }
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(
+                value: 'recurring',
+                child: Text('Recurring & schedules'),
+              ),
+              PopupMenuItem(
+                value: 'reset',
+                child: Text('Reset tracking data'),
               ),
             ],
           ),
@@ -558,41 +556,120 @@ class _TrackingHeader extends StatelessWidget {
   }
 }
 
-class _AddTransactionFab extends StatelessWidget {
-  const _AddTransactionFab();
+// ---------------- EXPANDABLE FAB ----------------
+
+class _ExpandableAddFab extends StatefulWidget {
+  final VoidCallback onAddIncome;
+  final VoidCallback onAddExpense;
+
+  const _ExpandableAddFab({
+    required this.onAddIncome,
+    required this.onAddExpense,
+  });
+
+  @override
+  State<_ExpandableAddFab> createState() => _ExpandableAddFabState();
+}
+
+class _ExpandableAddFabState extends State<_ExpandableAddFab> {
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(
-          context,
-          AppRoutes.addTransaction,
-          arguments: TransactionType.expense,
-        );
-      },
-      child: Container(
-        width: 58,
-        height: 58,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [Color(0xFFFF4F8B), Color(0xFF9A0E3A)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 12,
-              offset: Offset(0, 6),
+    return SizedBox(
+      width: 210,
+      height: 180,
+      child: Stack(
+        alignment: Alignment.bottomRight,
+        children: [
+          if (_expanded)
+            Positioned(
+              right: 0,
+              bottom: 72,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _AddRow(
+                    label: 'Add Income',
+                    color: Colors.green.shade600,
+                    icon: Icons.arrow_upward,
+                    onPressed: () {
+                      setState(() => _expanded = false);
+                      widget.onAddIncome();
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  _AddRow(
+                    label: 'Add Expense',
+                    color: BudgetaColors.primary,
+                    icon: Icons.arrow_downward,
+                    onPressed: () {
+                      setState(() => _expanded = false);
+                      widget.onAddExpense();
+                    },
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-        child: const Center(
-          child: Icon(Icons.add, color: Colors.white, size: 28),
-        ),
+          FloatingActionButton(
+            heroTag: 'tracking_add_fab',
+            backgroundColor: BudgetaColors.primary,
+            onPressed: () => setState(() => _expanded = !_expanded),
+            child: Icon(_expanded ? Icons.close : Icons.add),
+          ),
+        ],
       ),
+    );
+  }
+}
+
+class _AddRow extends StatelessWidget {
+  final String label;
+  final Color color;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _AddRow({
+    required this.label,
+    required this.color,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          margin: const EdgeInsets.only(right: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: BudgetaColors.deep,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ),
+        FloatingActionButton.small(
+          heroTag: 'add_row_$label',
+          backgroundColor: color,
+          onPressed: onPressed,
+          child: Icon(icon),
+        ),
+      ],
     );
   }
 }

@@ -7,6 +7,9 @@ class BudgetaColors {
   static const Color deep = Color(0xFF850E35); // 850E35
   static const Color accentLight = Color(0xFFFFC4C4); // FFC4C4
 
+  // Semantic / status
+  static const Color success = Color.fromARGB(255, 224, 16, 57); // soft success green for income etc.
+
   // Backgrounds
   static const Color backgroundLight = Color(0xFFFCF5EE); // FCF5EE
   static const Color backgroundDark = Color(0xFF1B1020);

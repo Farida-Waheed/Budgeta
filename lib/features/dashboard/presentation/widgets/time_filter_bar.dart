@@ -69,7 +69,6 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            // Selected button shadow is standard
                             color: BudgetaColors.primary
                                 .withValues(alpha: 0.28),
                             blurRadius: 10,
@@ -78,7 +77,6 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
                         ]
                       : [],
                   gradient: isSelected
-                      // Selected button gradient is standard
                       ? const LinearGradient(
                           colors: [
                             Color(0xFFFF4F8B),
@@ -88,16 +86,14 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
                           end: Alignment.bottomCenter,
                         )
                       : null,
-                  color: !isSelected
-                      // 💡 FIX: Unselected color is now very light, almost white
-                      ? BudgetaColors.accentLight.withValues(alpha: 0.1) 
-                      : null,
+                  // 🤍 UI change: unselected background is now clean white
+                  color: !isSelected ? Colors.white : null,
                   border: Border.all(
                     width: 1.2,
                     color: isSelected
                         ? BudgetaColors.primary
-                        // Unselected border is light, subtle, and consistent
-                        : BudgetaColors.accentLight.withValues(alpha: 0.9),
+                        // 🪞 UI change: unselected border uses cardBorder
+                        : BudgetaColors.cardBorder,
                   ),
                 ),
                 child: Row(
@@ -106,8 +102,8 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
                     Icon(
                       filters[i]['icon'] as IconData,
                       size: 16,
-                      color:
-                          isSelected ? Colors.white : BudgetaColors.primary,
+                      // 🎯 UI change: dark neutral icon when unselected
+                      color: isSelected ? Colors.white : BudgetaColors.deep,
                     ),
                     const SizedBox(width: 6),
                     Text(

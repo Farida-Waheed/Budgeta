@@ -740,7 +740,11 @@ class _RecentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isExpense = transaction.type == TransactionType.expense;
     final sign = isExpense ? '-' : '+';
-    final color = isExpense ? BudgetaColors.primary : Colors.green.shade600;
+
+    // 💚 UI change: use palette green for income instead of generic green
+    final color = isExpense
+        ? BudgetaColors.primary
+        : BudgetaColors.success;
 
     final dateStr = transaction.date.toLocal().toString().split(' ').first;
 
@@ -761,7 +765,8 @@ class _RecentTile extends StatelessWidget {
             decoration: BoxDecoration(
               color: isExpense
                   ? BudgetaColors.accentLight.withValues(alpha: 0.5)
-                  : Colors.green.withOpacity(0.15),
+                  // 💚 UI change: use success color with light opacity
+                  : BudgetaColors.success.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -895,6 +900,8 @@ class _PresetsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasPresets = presets.isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -913,11 +920,14 @@ class _PresetsSection extends StatelessWidget {
               onPressed: onSavePreset,
               icon: const Icon(Icons.add_rounded, size: 18),
               label: const Text('Save current view'),
+              style: TextButton.styleFrom(
+                foregroundColor: BudgetaColors.primary,
+              ),
             ),
           ],
         ),
         const SizedBox(height: 6),
-        if (presets.isEmpty)
+        if (!hasPresets)
           const Text(
             'No presets yet. Save this filter and layout for later.',
             style: TextStyle(fontSize: 12, color: BudgetaColors.textMuted),
@@ -953,31 +963,117 @@ Future<String?> _askPresetNameDialog(BuildContext context) async {
     context: context,
     builder: (ctx) {
       return AlertDialog(
-        title: const Text('Save dashboard preset'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Preset name',
-            hintText: 'e.g. Exam month view',
+        // UI: rounded, white, consistent with app cards
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(25),
+        ),
+        backgroundColor: Colors.white,
+        titlePadding: const EdgeInsets.only(
+          top: 24,
+          left: 24,
+          right: 24,
+          bottom: 0,
+        ),
+        contentPadding: const EdgeInsets.only(
+          top: 10,
+          left: 24,
+          right: 24,
+          bottom: 20,
+        ),
+        title: const Text(
+          'Save dashboard preset',
+          style: TextStyle(
+            color: BudgetaColors.deep,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
           ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: 'Preset name',
+                filled: true,
+                fillColor:
+                    BudgetaColors.accentLight.withValues(alpha: 0.1),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: BudgetaColors.accentLight
+                        .withValues(alpha: 0.8),
+                    width: 1.0,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(
+                    color: BudgetaColors.accentLight
+                        .withValues(alpha: 0.8),
+                    width: 1.0,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(
+                    color: BudgetaColors.primary,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                color: BudgetaColors.primary, // 💗 primary text
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: BudgetaColors.primary, // 💗 vibrant pink
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 10,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              elevation: 0,
+            ),
             onPressed: () {
               Navigator.of(ctx).pop(controller.text);
             },
-            child: const Text('Save'),
+            child: const Text(
+              'Save',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
           ),
+          const SizedBox(width: 8),
         ],
       );
     },
   );
 }
 
+/// ==========================================================
+/// TRANSACTION LIST BOTTOM SHEET (nice white rounded sheet)
+/// ==========================================================
 Future<void> _showCategoryTransactionsSheet({
   required BuildContext context,
   required String title,
@@ -986,78 +1082,94 @@ Future<void> _showCategoryTransactionsSheet({
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-    ),
+    backgroundColor: Colors.transparent, // for rounded container
     builder: (ctx) {
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      final sheetHeight = MediaQuery.of(ctx).size.height * 0.75;
+
+      return Container(
+        height: sheetHeight,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+        ),
+        child: SafeArea(
+          top: false,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.max,
             children: [
+              // Drag handle
               Container(
-                width: 36,
+                margin: const EdgeInsets.symmetric(vertical: 10),
                 height: 4,
-                margin: const EdgeInsets.only(bottom: 8),
+                width: 40,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.4),
+                  color: BudgetaColors.accentLight,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: BudgetaColors.deep,
+
+              // Header / Title section
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 4,
                 ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: BudgetaColors.deep,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${transactions.length} transaction(s)',
+                      style: TextStyle(
+                        color: BudgetaColors.textMuted
+                            .withValues(alpha: 0.8),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 4),
+              const Divider(
+                color: BudgetaColors.accentLight,
+                height: 1,
               ),
               const SizedBox(height: 4),
-              Text(
-                '${transactions.length} transaction(s)',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: BudgetaColors.textMuted,
-                ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.45,
+
+              // Transaction list
+              Expanded(
                 child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 8,
+                  ),
                   itemCount: transactions.length,
                   itemBuilder: (_, i) {
                     final t = transactions[i];
-                    final isExpense = t.type == TransactionType.expense;
-                    final sign = isExpense ? '-' : '+';
-                    final color = isExpense
-                        ? BudgetaColors.primary
-                        : Colors.green.shade600;
-                    final date = t.date.toLocal().toString().split(' ').first;
+                    final isExpense =
+                        t.type == TransactionType.expense;
+                    final signedAmount =
+                        isExpense ? -t.amount : t.amount;
+                    final date =
+                        t.date.toLocal().toString().split(' ').first;
 
-                    return ListTile(
-                      dense: true,
-                      title: Text(
-                        t.note ?? 'No note',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: BudgetaColors.deep,
-                        ),
-                      ),
-                      subtitle: Text(
-                        date,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: BudgetaColors.textMuted,
-                        ),
-                      ),
-                      trailing: Text(
-                        '$sign${t.amount.toStringAsFixed(2)} EGP',
-                        style: TextStyle(
-                          color: color,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                    return _TransactionListItem(
+                      note: t.note ?? 'No note',
+                      date: date,
+                      amount: signedAmount,
+                      currency: 'EGP',
                     );
                   },
                 ),
@@ -1068,4 +1180,65 @@ Future<void> _showCategoryTransactionsSheet({
       );
     },
   );
+}
+
+/// Helper widget for a single transaction row in the bottom sheet
+class _TransactionListItem extends StatelessWidget {
+  final String note;
+  final String date;
+  final double amount;
+  final String currency;
+
+  const _TransactionListItem({
+    required this.note,
+    required this.date,
+    required this.amount,
+    required this.currency,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isNegative = amount < 0;
+    final Color amountColor =
+        isNegative ? BudgetaColors.primary : BudgetaColors.success;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                note,
+                style: const TextStyle(
+                  color: BudgetaColors.deep,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                date,
+                style: TextStyle(
+                  color: BudgetaColors.textMuted
+                      .withValues(alpha: 0.8),
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          Text(
+            '${amount.toStringAsFixed(2)} $currency',
+            style: TextStyle(
+              color: amountColor,
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

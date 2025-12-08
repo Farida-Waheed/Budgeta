@@ -41,18 +41,18 @@ class _InsightCard extends StatelessWidget {
 
   const _InsightCard({required this.insight});
 
-  // --- Helper Functions using InsightType ---
-
   Color _colorForType(InsightType type) {
     switch (type) {
       case InsightType.alert:
       case InsightType.overspending:
-        return const Color(0xFFEB3B5A); // warm red
+        return const Color(0xFFEB3B5A); // warm red for alerts
       case InsightType.trend:
-        return const Color(0xFFF5A623); // warm orange
+        // 💗 updated trend color to pink-friendly
+        return const Color(0xFFF75586);
       case InsightType.tip:
       default:
-        return BudgetaColors.primary; // primary pink
+        // 💗 deeper pink/red for tips/default
+        return const Color(0xFFC70039);
     }
   }
 
@@ -60,9 +60,11 @@ class _InsightCard extends StatelessWidget {
     switch (type) {
       case InsightType.alert:
       case InsightType.overspending:
-        return Icons.error_outline_rounded;
+        // 💡 better visual for negative/overspending
+        return Icons.remove_circle_outline_rounded;
       case InsightType.trend:
-        return Icons.auto_graph_rounded; 
+        // 💡 timeline-style trend icon
+        return Icons.timeline_rounded;
       case InsightType.tip:
       default:
         return Icons.lightbulb_outline_rounded;
@@ -109,11 +111,10 @@ class _InsightCard extends StatelessWidget {
           ),
         ],
       ),
-
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Left circular icon bubble (Standardized theme)
+          // Left circular icon bubble
           Container(
             width: 40,
             height: 40,
@@ -122,7 +123,7 @@ class _InsightCard extends StatelessWidget {
               gradient: LinearGradient(
                 colors: [
                   Colors.white,
-                  BudgetaColors.accentLight.withValues(alpha: 0.7), // Standard light accent
+                  BudgetaColors.accentLight.withValues(alpha: 0.7),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -132,7 +133,7 @@ class _InsightCard extends StatelessWidget {
               child: Icon(
                 icon,
                 size: 22,
-                color: accentColor, // Icon color matches the type
+                color: accentColor,
               ),
             ),
           ),
@@ -143,7 +144,6 @@ class _InsightCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title (big & bold)
                 Text(
                   insight.title,
                   maxLines: 2,
@@ -155,24 +155,20 @@ class _InsightCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-
-                // Tiny label under title (in accent color)
                 Text(
                   label,
                   style: TextStyle(
-                    color: accentColor, // Label color matches the type
+                    color: accentColor,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 6),
-
-                // Description (The main message)
                 Text(
                   insight.description,
                   style: const TextStyle(
                     color: BudgetaColors.textMuted,
-                    fontSize: 12.5, // Slightly larger for readability
+                    fontSize: 12.5,
                     height: 1.4,
                   ),
                 ),

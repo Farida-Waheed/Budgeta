@@ -41,24 +41,28 @@ class _IssueCard extends StatelessWidget {
 
   const _IssueCard({required this.issue});
 
-  // Now handles both icon color and small label color
+  // Handles icon color and label color
   Color _accentColor(String s) {
     switch (s.toLowerCase()) {
       case 'error':
         return const Color(0xFFEB3B5A); // warm red
       case 'warning':
-        return const Color(0xFFF5A623); // warm orange
+        // 💗 Updated warning color to pink-friendly hue
+        return const Color(0xFFF75586);
       default:
-        return BudgetaColors.primary; // primary pink
+        // 💗 Deeper red/pink for default/info
+        return const Color(0xFFC70039);
     }
   }
 
   IconData _iconForSeverity(String s) {
     switch (s.toLowerCase()) {
       case 'error':
-        return Icons.error_rounded;
+        // 💡 More modern alert icon
+        return Icons.notification_important_rounded;
       case 'warning':
-        return Icons.warning_amber_rounded;
+        // 💡 Softer "heads up" icon
+        return Icons.lightbulb_outline_rounded;
       default:
         return Icons.info_rounded;
     }
@@ -67,11 +71,11 @@ class _IssueCard extends StatelessWidget {
   String _labelForSeverity(String s) {
     switch (s.toLowerCase()) {
       case 'error':
-        return 'Critical Alert'; // Capitalized for consistency
+        return 'Critical Alert';
       case 'warning':
-        return 'Heads Up'; // Capitalized
+        return 'Heads Up';
       default:
-        return 'Insight'; // Capitalized
+        return 'Insight';
     }
   }
 
@@ -81,13 +85,12 @@ class _IssueCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 10), // Reduced margin slightly
+      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white, // Pure white background
+        color: Colors.white,
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          // Light, subtle border color
           color: BudgetaColors.accentLight.withValues(alpha: 0.9),
           width: 1.3,
         ),
@@ -102,16 +105,16 @@ class _IssueCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Left circular icon bubble (Unified light theme gradient)
+          // Left circular icon bubble
           Container(
-            width: 40, // Standardized size to match Insights
+            width: 40,
             height: 40,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
                 colors: [
                   Colors.white,
-                  BudgetaColors.accentLight.withValues(alpha: 0.7), // Standard light accent
+                  BudgetaColors.accentLight.withValues(alpha: 0.7),
                 ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -120,7 +123,7 @@ class _IssueCard extends StatelessWidget {
             child: Icon(
               _iconForSeverity(issue.severity),
               size: 22,
-              color: accent, // Icon color still reflects severity
+              color: accent,
             ),
           ),
           const SizedBox(width: 12),
@@ -130,7 +133,6 @@ class _IssueCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title (Message) - Now bold/title-like
                 Text(
                   issue.message,
                   style: const TextStyle(
@@ -140,14 +142,12 @@ class _IssueCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 2),
-
-                // Small label (Alert / Insight) - Now under the title, in accent color
                 Text(
                   _labelForSeverity(issue.severity),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: accent, // Color still reflects severity
+                    color: accent,
                   ),
                 ),
               ],
