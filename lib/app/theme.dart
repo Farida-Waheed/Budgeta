@@ -8,7 +8,12 @@ class BudgetaColors {
   static const Color accentLight = Color(0xFFFFC4C4); // FFC4C4
 
   // Semantic / status
-  static const Color success = Color.fromARGB(255, 224, 16, 57); // soft success green for income etc.
+  static const Color success = Color.fromRGBO(
+    67,
+    160,
+    71,
+    1,
+  ); // soft success green for income etc.
 
   // Backgrounds
   static const Color backgroundLight = Color(0xFFFCF5EE); // FCF5EE
@@ -32,20 +37,14 @@ class BudgetaGradients {
   static const LinearGradient heroBackground = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [
-      Color(0xFFFFF8F3),
-      Color(0xFFFEE4EC),
-    ],
+    colors: [Color(0xFFFFF8F3), Color(0xFFFEE4EC)],
   );
 
   // Main CTA button gradient
   static const LinearGradient primaryButton = LinearGradient(
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
-    colors: [
-      Color(0xFFFF7193),
-      Color(0xFF9A0E3A),
-    ],
+    colors: [Color(0xFFFF7193), Color(0xFF9A0E3A)],
   );
 }
 
@@ -107,8 +106,9 @@ class BudgetaTheme {
       chipTheme: base.chipTheme.copyWith(
         selectedColor: BudgetaColors.primary,
         disabledColor: BudgetaColors.accentLight,
-        backgroundColor:
-            BudgetaColors.accentLight.withValues(alpha: 0.4), // soft pink
+        backgroundColor: BudgetaColors.accentLight.withValues(
+          alpha: 0.4,
+        ), // soft pink
         labelStyle: const TextStyle(color: BudgetaColors.deep),
         secondaryLabelStyle: const TextStyle(color: Colors.white),
       ),
@@ -181,12 +181,8 @@ class BudgetaTheme {
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
-        bodyMedium: base.textTheme.bodyMedium?.copyWith(
-          color: Colors.white70,
-        ),
-        labelLarge: base.textTheme.labelLarge?.copyWith(
-          color: Colors.white,
-        ),
+        bodyMedium: base.textTheme.bodyMedium?.copyWith(color: Colors.white70),
+        labelLarge: base.textTheme.labelLarge?.copyWith(color: Colors.white),
       ),
       chipTheme: base.chipTheme.copyWith(
         selectedColor: BudgetaColors.primary,
