@@ -8,10 +8,7 @@ typedef DashboardFilterCallback = void Function(dash_repo.DashboardFilter);
 class TimeFilterBar extends StatefulWidget {
   final DashboardFilterCallback onFilterChanged;
 
-  const TimeFilterBar({
-    super.key,
-    required this.onFilterChanged,
-  });
+  const TimeFilterBar({super.key, required this.onFilterChanged});
 
   @override
   State<TimeFilterBar> createState() => _TimeFilterBarState();
@@ -62,15 +59,18 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
               onTap: () => _updateSelection(i),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(999),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: BudgetaColors.primary
-                                .withValues(alpha: 0.28),
+                            color: BudgetaColors.primary.withValues(
+                              alpha: 0.28,
+                            ),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -78,10 +78,7 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
                       : [],
                   gradient: isSelected
                       ? const LinearGradient(
-                          colors: [
-                            Color(0xFFFF4F8B),
-                            Color(0xFFB20F4E),
-                          ],
+                          colors: [Color(0xFFFF4F8B), Color(0xFFB20F4E)],
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                         )
@@ -109,10 +106,10 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
                     Text(
                       filters[i]['label'] as String,
                       style: TextStyle(
-                        color:
-                            isSelected ? Colors.white : BudgetaColors.deep,
-                        fontWeight:
-                            isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected ? Colors.white : BudgetaColors.deep,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
                         fontSize: 12.5,
                       ),
                     ),

@@ -112,8 +112,7 @@ class InMemoryTrackingLocalDataSource implements TrackingLocalDataSource {
       if (categoryId != null && t.categoryId != categoryId) return false;
       if (type != null && t.type != type) return false;
       return true;
-    }).toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+    }).toList()..sort((a, b) => b.date.compareTo(a.date));
   }
 
   // ---------------- RECURRING RULES ----------------

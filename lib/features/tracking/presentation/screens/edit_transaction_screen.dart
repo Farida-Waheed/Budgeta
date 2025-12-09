@@ -14,13 +14,17 @@ class EditTransactionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BudgetaColors.backgroundLight,
+      backgroundColor: Colors.black.withValues(alpha: 0.35),
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: 500,
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
+              ),
               child: EditTransactionSheetContent(
                 transaction: transaction,
                 onClose: () => Navigator.of(context).pop(),
@@ -65,8 +69,9 @@ class _EditTransactionSheetContentState
     _amountController = TextEditingController(
       text: widget.transaction.amount.toStringAsFixed(2),
     );
-    _noteController =
-        TextEditingController(text: widget.transaction.note ?? '');
+    _noteController = TextEditingController(
+      text: widget.transaction.note ?? '',
+    );
     _date = widget.transaction.date;
     _type = widget.transaction.type;
     _selectedCategoryId = widget.transaction.categoryId;
@@ -147,8 +152,10 @@ class _EditTransactionSheetContentState
           borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide.none,
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
     );
 
@@ -158,266 +165,264 @@ class _EditTransactionSheetContentState
       elevation: 8,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 10),
-            // top handle
-            Container(
-              width: 60,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.35),
-                borderRadius: BorderRadius.circular(2),
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 10),
+              // top handle
+              Container(
+                width: 60,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.35),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            const SizedBox(height: 14),
-            // header row
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Edit Transaction ✨',
-                          style: TextStyle(
-                            color: BudgetaColors.deep,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
+              const SizedBox(height: 14),
+              // header row
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Edit Transaction ✨',
+                            style: TextStyle(
+                              color: BudgetaColors.deep,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Fine-tune the details any time',
-                          style: TextStyle(
-                            color: BudgetaColors.textMuted,
-                            fontSize: 12,
+                          SizedBox(height: 4),
+                          Text(
+                            'Fine-tune the details any time',
+                            style: TextStyle(
+                              color: BudgetaColors.textMuted,
+                              fontSize: 12,
+                            ),
                           ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: widget.onClose,
+                      icon: const Icon(Icons.close_rounded),
+                      color: BudgetaColors.deep,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white, // inner white card like Add sheet
+                      borderRadius: BorderRadius.circular(26),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                  ),
-                  IconButton(
-                    onPressed: widget.onClose,
-                    icon: const Icon(Icons.close_rounded),
-                    color: BudgetaColors.deep,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white, // inner white card like Add sheet
-                    borderRadius: BorderRadius.circular(26),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Theme(
-                      data: fieldTheme,
-                      child: Form(
-                        key: _formKey,
-                        child: ListView(
-                          children: [
-                            // Expense / Income segmented control
-                            Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                color: BudgetaColors.backgroundLight,
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              child: Row(
-                                children: [
-                                  _TypeSegmentEdit(
-                                    label: 'Expense',
-                                    selected: isExpense,
-                                    onTap: () {
-                                      setState(() {
-                                        _type = TransactionType.expense;
-                                      });
-                                    },
-                                  ),
-                                  const SizedBox(width: 6),
-                                  _TypeSegmentEdit(
-                                    label: 'Income',
-                                    selected: !isExpense,
-                                    onTap: () {
-                                      setState(() {
-                                        _type = TransactionType.income;
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            // Amount label + field
-                            Text(
-                              'Amount',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(
-                                    color: BudgetaColors.deep,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                            const SizedBox(height: 6),
-                            TextFormField(
-                              controller: _amountController,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                      decimal: true),
-                              decoration: const InputDecoration(
-                                prefixIcon:
-                                    Icon(Icons.attach_money_rounded),
-                                hintText: '0.00',
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Enter amount';
-                                }
-                                final parsed = double.tryParse(value);
-                                if (parsed == null || parsed <= 0) {
-                                  return 'Enter a valid amount';
-                                }
-                                return null;
-                              },
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            // Note / description
-                            Text(
-                              'Description (Optional)',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(
-                                    color: BudgetaColors.deep,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                            const SizedBox(height: 6),
-                            TextFormField(
-                              controller: _noteController,
-                              decoration: const InputDecoration(
-                                hintText: 'What\'s this for?',
-                                prefixIcon:
-                                    Icon(Icons.edit_note_outlined),
-                              ),
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            if (_suggestedCategoryId != null)
-                              _buildSmartCategorySuggestion(),
-
-                            const SizedBox(height: 18),
-
-                            // Category chips
-                            Text(
-                              'Category',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(
-                                    color: BudgetaColors.deep,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                            const SizedBox(height: 6),
-                            CategoryChipList(
-                              selectedCategoryId: _selectedCategoryId,
-                              onCategorySelected: (id) {
-                                if (id == null) return;
-                                setState(() => _selectedCategoryId = id);
-                              },
-                            ),
-
-                            const SizedBox(height: 18),
-
-                            // Date row (kept same as before)
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading:
-                                  const Icon(Icons.calendar_today_outlined),
-                              title: const Text('Date'),
-                              subtitle: Text(
-                                _date.toLocal().toString().split(' ').first,
-                              ),
-                              onTap: () async {
-                                final picked = await showDatePicker(
-                                  context: context,
-                                  initialDate: _date,
-                                  firstDate: DateTime(2020),
-                                  lastDate: DateTime(2100),
-                                );
-                                if (picked != null) {
-                                  setState(() => _date = picked);
-                                }
-                              },
-                            ),
-
-                            const SizedBox(height: 24),
-
-                            SizedBox(
-                              height: 50,
-                              child: DecoratedBox(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Theme(
+                        data: fieldTheme,
+                        child: Form(
+                          key: _formKey,
+                          child: ListView(
+                            children: [
+                              // Expense / Income segmented control
+                              Container(
+                                padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF9A0E3A),
-                                      Color(0xFFFF4F8B),
-                                    ],
-                                    begin: Alignment.centerLeft,
-                                    end: Alignment.centerRight,
-                                  ),
+                                  color: BudgetaColors.backgroundLight,
                                   borderRadius: BorderRadius.circular(24),
                                 ),
-                                child: TextButton(
-                                  onPressed: _save,
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(24),
+                                child: Row(
+                                  children: [
+                                    _TypeSegmentEdit(
+                                      label: 'Expense',
+                                      selected: isExpense,
+                                      onTap: () {
+                                        setState(() {
+                                          _type = TransactionType.expense;
+                                        });
+                                      },
                                     ),
-                                  ),
-                                  child: const Text(
-                                    'Save changes',
-                                    style: TextStyle(
+                                    const SizedBox(width: 6),
+                                    _TypeSegmentEdit(
+                                      label: 'Income',
+                                      selected: !isExpense,
+                                      onTap: () {
+                                        setState(() {
+                                          _type = TransactionType.income;
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              // Amount label + field
+                              Text(
+                                'Amount',
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(
+                                      color: BudgetaColors.deep,
                                       fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                              const SizedBox(height: 6),
+                              TextFormField(
+                                controller: _amountController,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                decoration: const InputDecoration(
+                                  prefixIcon: Icon(Icons.attach_money_rounded),
+                                  hintText: '0.00',
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Enter amount';
+                                  }
+                                  final parsed = double.tryParse(value);
+                                  if (parsed == null || parsed <= 0) {
+                                    return 'Enter a valid amount';
+                                  }
+                                  return null;
+                                },
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Note / description
+                              Text(
+                                'Description (Optional)',
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(
+                                      color: BudgetaColors.deep,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                              const SizedBox(height: 6),
+                              TextFormField(
+                                controller: _noteController,
+                                decoration: const InputDecoration(
+                                  hintText: 'What\'s this for?',
+                                  prefixIcon: Icon(Icons.edit_note_outlined),
+                                ),
+                              ),
+
+                              const SizedBox(height: 10),
+
+                              if (_suggestedCategoryId != null)
+                                _buildSmartCategorySuggestion(),
+
+                              const SizedBox(height: 18),
+
+                              // Category chips
+                              Text(
+                                'Category',
+                                style: Theme.of(context).textTheme.labelLarge
+                                    ?.copyWith(
+                                      color: BudgetaColors.deep,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                              const SizedBox(height: 6),
+                              CategoryChipList(
+                                selectedCategoryId: _selectedCategoryId,
+                                onCategorySelected: (id) {
+                                  if (id == null) return;
+                                  setState(() => _selectedCategoryId = id);
+                                },
+                              ),
+
+                              const SizedBox(height: 18),
+
+                              // Date row (kept same as before)
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: const Icon(
+                                  Icons.calendar_today_outlined,
+                                ),
+                                title: const Text('Date'),
+                                subtitle: Text(
+                                  _date.toLocal().toString().split(' ').first,
+                                ),
+                                onTap: () async {
+                                  final picked = await showDatePicker(
+                                    context: context,
+                                    initialDate: _date,
+                                    firstDate: DateTime(2020),
+                                    lastDate: DateTime(2100),
+                                  );
+                                  if (picked != null) {
+                                    setState(() => _date = picked);
+                                  }
+                                },
+                              ),
+
+                              const SizedBox(height: 24),
+
+                              SizedBox(
+                                height: 50,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Color(0xFF9A0E3A),
+                                        Color(0xFFFF4F8B),
+                                      ],
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                  child: TextButton(
+                                    onPressed: _save,
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(24),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Save changes',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -469,7 +474,7 @@ Future<void> showEditTransactionBottomSheet(
           left: 8,
           right: 8,
           bottom: mq.viewInsets.bottom + 8,
-          top: mq.size.height * 0.25,
+          top: mq.size.height * 0.3,
         ),
         child: EditTransactionSheetContent(
           transaction: transaction,

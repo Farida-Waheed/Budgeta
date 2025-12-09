@@ -26,11 +26,7 @@ class InsightsSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Column(
-          children: [
-            for (final i in insights) _InsightCard(insight: i),
-          ],
-        ),
+        Column(children: [for (final i in insights) _InsightCard(insight: i)]),
       ],
     );
   }
@@ -129,13 +125,7 @@ class _InsightCard extends StatelessWidget {
                 end: Alignment.bottomCenter,
               ),
             ),
-            child: Center(
-              child: Icon(
-                icon,
-                size: 22,
-                color: accentColor,
-              ),
-            ),
+            child: Center(child: Icon(icon, size: 22, color: accentColor)),
           ),
           const SizedBox(width: 12),
 

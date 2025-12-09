@@ -125,15 +125,16 @@ class DashboardHomeScreen extends StatelessWidget {
                           view: view,
                           onCategoryTap:
                               (String categoryId, String displayName) async {
-                            final txs =
-                                await cubit.drillDownToCategory(categoryId);
-                            // ignore: use_build_context_synchronously
-                            _showCategoryTransactionsSheet(
-                              context: context,
-                              title: displayName,
-                              transactions: txs,
-                            );
-                          },
+                                final txs = await cubit.drillDownToCategory(
+                                  categoryId,
+                                );
+                                // ignore: use_build_context_synchronously
+                                _showCategoryTransactionsSheet(
+                                  context: context,
+                                  title: displayName,
+                                  transactions: txs,
+                                );
+                              },
                         ),
                         const SizedBox(height: 20),
 
@@ -145,15 +146,14 @@ class DashboardHomeScreen extends StatelessWidget {
                         _PresetsSection(
                           presets: state.presets,
                           onSavePreset: () async {
-                            final name =
-                                await _askPresetNameDialog(context);
+                            final name = await _askPresetNameDialog(context);
                             if (name == null || name.trim().isEmpty) return;
                             await cubit.savePreset(name.trim());
                           },
                           onApplyPreset:
                               (dash_repo.DashboardPreset preset) async {
-                            await cubit.applyPreset(preset);
-                          },
+                                await cubit.applyPreset(preset);
+                              },
                         ),
                         const SizedBox(height: 20),
 
@@ -355,7 +355,7 @@ class _DashboardHeader extends StatelessWidget {
                         Icon(
                           Icons.trending_up_rounded,
                           size: 16,
-                          color: Colors.green.shade600,
+                          color: const Color.fromRGBO(67, 160, 71, 1),
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -499,11 +499,7 @@ class _QuickStatCard extends StatelessWidget {
                 end: Alignment.bottomCenter,
               ),
             ),
-            child: Icon(
-              icon,
-              size: 24,
-              color: BudgetaColors.primary,
-            ),
+            child: Icon(icon, size: 24, color: BudgetaColors.primary),
           ),
           const SizedBox(height: 10),
           Text(
@@ -742,9 +738,7 @@ class _RecentTile extends StatelessWidget {
     final sign = isExpense ? '-' : '+';
 
     // 💚 UI change: use palette green for income instead of generic green
-    final color = isExpense
-        ? BudgetaColors.primary
-        : BudgetaColors.success;
+    final color = isExpense ? BudgetaColors.primary : BudgetaColors.success;
 
     final dateStr = transaction.date.toLocal().toString().split(' ').first;
 
@@ -887,6 +881,7 @@ class _MetricsHint extends StatelessWidget {
   }
 }
 
+/// ====== UPDATED PRESETS UI =================================================
 class _PresetsSection extends StatelessWidget {
   final List<dash_repo.DashboardPreset> presets;
   final VoidCallback onSavePreset;
@@ -922,6 +917,7 @@ class _PresetsSection extends StatelessWidget {
               label: const Text('Save current view'),
               style: TextButton.styleFrom(
                 foregroundColor: BudgetaColors.primary,
+                textStyle: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -935,21 +931,65 @@ class _PresetsSection extends StatelessWidget {
         else
           Wrap(
             spacing: 8,
-            runSpacing: 4,
+            runSpacing: 6,
             children: [
               for (final p in presets)
-                ActionChip(
-                  label: Text(p.name),
-                  avatar: const Icon(
-                    Icons.timeline_rounded,
-                    size: 16,
-                    color: BudgetaColors.deep,
-                  ),
-                  onPressed: () => onApplyPreset(p),
-                ),
+                _PresetChip(label: p.name, onTap: () => onApplyPreset(p)),
             ],
           ),
       ],
+    );
+  }
+}
+
+class _PresetChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _PresetChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: BudgetaColors.accentLight.withValues(alpha: 0.25),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: BudgetaColors.accentLight.withValues(alpha: 0.9),
+            width: 1.1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.timeline_rounded,
+              size: 16,
+              color: BudgetaColors.deep,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color: BudgetaColors.deep,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -964,9 +1004,7 @@ Future<String?> _askPresetNameDialog(BuildContext context) async {
     builder: (ctx) {
       return AlertDialog(
         // UI: rounded, white, consistent with app cards
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(25),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
         backgroundColor: Colors.white,
         titlePadding: const EdgeInsets.only(
           top: 24,
@@ -997,8 +1035,7 @@ Future<String?> _askPresetNameDialog(BuildContext context) async {
               decoration: InputDecoration(
                 hintText: 'Preset name',
                 filled: true,
-                fillColor:
-                    BudgetaColors.accentLight.withValues(alpha: 0.1),
+                fillColor: BudgetaColors.accentLight.withValues(alpha: 0.1),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
@@ -1006,16 +1043,14 @@ Future<String?> _askPresetNameDialog(BuildContext context) async {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(
-                    color: BudgetaColors.accentLight
-                        .withValues(alpha: 0.8),
+                    color: BudgetaColors.accentLight.withValues(alpha: 0.8),
                     width: 1.0,
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(
-                    color: BudgetaColors.accentLight
-                        .withValues(alpha: 0.8),
+                    color: BudgetaColors.accentLight.withValues(alpha: 0.8),
                     width: 1.0,
                   ),
                 ),
@@ -1045,10 +1080,7 @@ Future<String?> _askPresetNameDialog(BuildContext context) async {
             style: ElevatedButton.styleFrom(
               backgroundColor: BudgetaColors.primary, // 💗 vibrant pink
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -1059,9 +1091,7 @@ Future<String?> _askPresetNameDialog(BuildContext context) async {
             },
             child: const Text(
               'Save',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w700),
             ),
           ),
           const SizedBox(width: 8),
@@ -1132,8 +1162,7 @@ Future<void> _showCategoryTransactionsSheet({
                     Text(
                       '${transactions.length} transaction(s)',
                       style: TextStyle(
-                        color: BudgetaColors.textMuted
-                            .withValues(alpha: 0.8),
+                        color: BudgetaColors.textMuted.withValues(alpha: 0.8),
                         fontSize: 14,
                       ),
                     ),
@@ -1142,10 +1171,7 @@ Future<void> _showCategoryTransactionsSheet({
               ),
 
               const SizedBox(height: 4),
-              const Divider(
-                color: BudgetaColors.accentLight,
-                height: 1,
-              ),
+              const Divider(color: BudgetaColors.accentLight, height: 1),
               const SizedBox(height: 4),
 
               // Transaction list
@@ -1158,12 +1184,9 @@ Future<void> _showCategoryTransactionsSheet({
                   itemCount: transactions.length,
                   itemBuilder: (_, i) {
                     final t = transactions[i];
-                    final isExpense =
-                        t.type == TransactionType.expense;
-                    final signedAmount =
-                        isExpense ? -t.amount : t.amount;
-                    final date =
-                        t.date.toLocal().toString().split(' ').first;
+                    final isExpense = t.type == TransactionType.expense;
+                    final signedAmount = isExpense ? -t.amount : t.amount;
+                    final date = t.date.toLocal().toString().split(' ').first;
 
                     return _TransactionListItem(
                       note: t.note ?? 'No note',
@@ -1199,8 +1222,9 @@ class _TransactionListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isNegative = amount < 0;
-    final Color amountColor =
-        isNegative ? BudgetaColors.primary : BudgetaColors.success;
+    final Color amountColor = isNegative
+        ? BudgetaColors.primary
+        : BudgetaColors.success;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -1222,8 +1246,7 @@ class _TransactionListItem extends StatelessWidget {
               Text(
                 date,
                 style: TextStyle(
-                  color: BudgetaColors.textMuted
-                      .withValues(alpha: 0.8),
+                  color: BudgetaColors.textMuted.withValues(alpha: 0.8),
                   fontSize: 12,
                 ),
               ),

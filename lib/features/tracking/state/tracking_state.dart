@@ -11,10 +11,7 @@ class TrackingLoaded extends TrackingState {
   final List<Transaction> transactions;
   final List<RecurringRule> recurringRules;
 
-  TrackingLoaded({
-    required this.transactions,
-    required this.recurringRules,
-  });
+  TrackingLoaded({required this.transactions, required this.recurringRules});
 }
 
 class TrackingError extends TrackingState {

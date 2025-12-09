@@ -27,9 +27,7 @@ class BudgetHealthSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Column(
-          children: [
-            for (final issue in issues) _IssueCard(issue: issue),
-          ],
+          children: [for (final issue in issues) _IssueCard(issue: issue)],
         ),
       ],
     );

@@ -11,10 +11,8 @@ class TrackingCubit extends Cubit<TrackingState> {
   final TrackingRepository repository;
   final String userId;
 
-  TrackingCubit({
-    required this.repository,
-    required this.userId,
-  }) : super(TrackingInitial());
+  TrackingCubit({required this.repository, required this.userId})
+    : super(TrackingInitial());
 
   Future<void> loadTransactions() async {
     emit(TrackingLoading());

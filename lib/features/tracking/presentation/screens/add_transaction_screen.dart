@@ -6,8 +6,7 @@ import '../../../../core/models/transaction.dart';
 import '../../state/tracking_cubit.dart';
 import '../widgets/category_chip_list.dart';
 
-/// You can still push this as a full page if you want,
-/// but the design is mainly used as a bottom sheet.
+/// Wrapper route (optional). Prefer using [showAddTransactionBottomSheet].
 class AddTransactionScreen extends StatelessWidget {
   final TransactionType? preselectedType;
 
@@ -16,14 +15,22 @@ class AddTransactionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Let the previous page show through if this is pushed
       backgroundColor: Colors.black.withValues(alpha: 0.35),
       body: SafeArea(
-        child: Center(
+        child: Align(
+          alignment: Alignment.bottomCenter,
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: AddTransactionSheetContent(
-              preselectedType: preselectedType,
-              onClose: () => Navigator.of(context).pop(),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: 500,
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
+              ),
+              child: AddTransactionSheetContent(
+                preselectedType: preselectedType,
+                onClose: () => Navigator.of(context).pop(),
+              ),
             ),
           ),
         ),
@@ -51,83 +58,88 @@ class AddTransactionSheetContent extends StatelessWidget {
       elevation: 8,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 10),
-            // top handle
-            Container(
-              width: 60,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2),
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 10),
+              // top handle
+              Container(
+                width: 60,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            // title row
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Add Transaction ✨',
-                          style: TextStyle(
-                            color: BudgetaColors.deep,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
+              const SizedBox(height: 12),
+              // title row
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Add Transaction ✨',
+                            style: TextStyle(
+                              color: BudgetaColors.deep,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Log money moves in seconds',
-                          style: TextStyle(
-                            color: BudgetaColors.textMuted,
-                            fontSize: 12,
+                          SizedBox(height: 4),
+                          Text(
+                            'Log money moves in seconds',
+                            style: TextStyle(
+                              color: BudgetaColors.textMuted,
+                              fontSize: 12,
+                            ),
                           ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: onClose,
+                      icon: const Icon(Icons.close_rounded),
+                      color: BudgetaColors.deep,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white, // inner white card like mock
+                      borderRadius: BorderRadius.circular(26),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                  ),
-                  IconButton(
-                    onPressed: onClose,
-                    icon: const Icon(Icons.close_rounded),
-                    color: BudgetaColors.deep,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white, // inner white card like mock
-                    borderRadius: BorderRadius.circular(26),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: AddTransactionForm(
+                        preselectedType: preselectedType,
                       ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: AddTransactionForm(
-                      preselectedType: preselectedType,
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -237,15 +249,16 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     final fieldTheme = Theme.of(context).copyWith(
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor:
-            const Color(0xFFFFF1F5), // soft pink field bg like reference
+        fillColor: const Color(0xFFFFF1F5), // soft pink field bg
         labelStyle: const TextStyle(fontSize: 13),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide.none,
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
     );
 
@@ -298,15 +311,16 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
             Text(
               'Amount',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: BudgetaColors.deep,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: BudgetaColors.deep,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 6),
             TextFormField(
               controller: _amountController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(
                 prefixIcon: Icon(Icons.attach_money_rounded),
                 hintText: '0.00',
@@ -327,9 +341,9 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
             Text(
               'Category',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: BudgetaColors.deep,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: BudgetaColors.deep,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 6),
             CategoryChipList(
@@ -349,16 +363,14 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
             Text(
               'Description (Optional)',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: BudgetaColors.deep,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: BudgetaColors.deep,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 6),
             TextFormField(
               controller: _noteController,
-              decoration: const InputDecoration(
-                hintText: "What's this for?",
-              ),
+              decoration: const InputDecoration(hintText: "What's this for?"),
             ),
 
             if (_suggestedCategoryId != null) ...[
@@ -376,9 +388,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.calendar_month_rounded),
                     title: const Text('Date'),
-                    subtitle: Text(
-                      _date.toLocal().toString().split(' ').first,
-                    ),
+                    subtitle: Text(_date.toLocal().toString().split(' ').first),
                     onTap: () async {
                       final picked = await showDatePicker(
                         context: context,
@@ -563,7 +573,7 @@ Future<void> showAddTransactionBottomSheet(
           left: 8,
           right: 8,
           bottom: mq.viewInsets.bottom + 8,
-          top: mq.size.height * 0.25, // ~60–65% height sheet
+          top: mq.size.height * 0.3, // slightly shorter sheet
         ),
         child: AddTransactionSheetContent(
           preselectedType: preselectedType,

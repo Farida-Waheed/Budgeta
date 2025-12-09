@@ -55,10 +55,7 @@ class _CategoryChipListState extends State<CategoryChipList> {
   List<_Category> get _currentCategories {
     if (widget.incomeOnly) {
       // Income mode: salary + any custom categories
-      return [
-        ..._incomeCategories,
-        ..._customCategories,
-      ];
+      return [..._incomeCategories, ..._customCategories];
     } else {
       // Default: expense + income + custom
       var list = <_Category>[
@@ -85,9 +82,7 @@ class _CategoryChipListState extends State<CategoryChipList> {
         title: const Text('Add category'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Category name',
-          ),
+          decoration: const InputDecoration(labelText: 'Category name'),
         ),
         actions: [
           TextButton(
@@ -110,8 +105,10 @@ class _CategoryChipListState extends State<CategoryChipList> {
     );
 
     if (result != null && result.isNotEmpty) {
-      final id =
-          result.toLowerCase().replaceAll(RegExp(r'\s+'), '_'); // simple id
+      final id = result.toLowerCase().replaceAll(
+        RegExp(r'\s+'),
+        '_',
+      ); // simple id
       setState(() {
         _customCategories.add(_Category(id: id, name: result));
       });
@@ -163,8 +160,7 @@ class _CategoryChipListState extends State<CategoryChipList> {
                 backgroundColor: BudgetaColors.background,
                 labelStyle: TextStyle(
                   color: selected ? Colors.white : BudgetaColors.deep,
-                  fontWeight:
-                      selected ? FontWeight.w600 : FontWeight.w400,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                 ),
                 side: BorderSide(
                   color: selected
@@ -178,13 +174,16 @@ class _CategoryChipListState extends State<CategoryChipList> {
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: ActionChip(
-              avatar: const Icon(Icons.add, size: 16, color: BudgetaColors.deep),
+              avatar: const Icon(
+                Icons.add,
+                size: 16,
+                color: BudgetaColors.deep,
+              ),
               label: const Text(
                 'Add category',
                 style: TextStyle(color: BudgetaColors.deep),
               ),
-              backgroundColor:
-                  BudgetaColors.accentLight.withValues(alpha: 0.5),
+              backgroundColor: BudgetaColors.accentLight.withValues(alpha: 0.5),
               onPressed: _addCategoryDialog,
             ),
           ),

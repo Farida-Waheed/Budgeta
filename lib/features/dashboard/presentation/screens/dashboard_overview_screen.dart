@@ -20,8 +20,7 @@ class DashboardOverviewScreen extends StatelessWidget {
         ),
         child: SafeArea(
           child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -30,8 +29,9 @@ class DashboardOverviewScreen extends StatelessWidget {
                   alignment: Alignment.topRight,
                   child: Icon(
                     PhosphorIconsFill.heart,
-                    color: BudgetaColors.primary
-                        .withValues(alpha: 0.25), // was withOpacity
+                    color: BudgetaColors.primary.withValues(
+                      alpha: 0.25,
+                    ), // was withOpacity
                     size: 18,
                   ),
                 ),
@@ -44,24 +44,18 @@ class DashboardOverviewScreen extends StatelessWidget {
                 // Text section
                 Text(
                   'Transform your',
-                  style:
-                      Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: BudgetaColors.textDark,
-                          ),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: BudgetaColors.textDark,
+                  ),
                 ),
                 Text.rich(
                   TextSpan(
                     text: 'money journey ',
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall
-                        ?.copyWith(
-                          color: BudgetaColors.deep,
-                          fontWeight: FontWeight.w700,
-                        ),
-                    children: const [
-                      TextSpan(text: 'into pure magic ✨'),
-                    ],
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: BudgetaColors.deep,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    children: const [TextSpan(text: 'into pure magic ✨')],
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -88,11 +82,10 @@ class DashboardOverviewScreen extends StatelessWidget {
                   'Budget with joy, save with sparkle,\n'
                   'and watch your dreams come true!\n'
                   'Empowerment starts here, superstar! 💗',
-                  style:
-                      Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: BudgetaColors.textMuted,
-                            height: 1.4,
-                          ),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: BudgetaColors.textMuted,
+                    height: 1.4,
+                  ),
                 ),
 
                 const Spacer(),
@@ -103,8 +96,7 @@ class DashboardOverviewScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(40),
                     boxShadow: [
                       BoxShadow(
-                        color:
-                            BudgetaColors.deep.withValues(alpha: 0.25),
+                        color: BudgetaColors.deep.withValues(alpha: 0.25),
                         blurRadius: 24,
                         spreadRadius: -2,
                         offset: const Offset(0, 10),
@@ -145,8 +137,7 @@ class _FeatureGrid extends StatelessWidget {
     const spacing = 12.0;
 
     // Width available for the 3 columns
-    final availableWidth =
-        size.width - (horizontalPadding * 2) - (spacing * 2);
+    final availableWidth = size.width - (horizontalPadding * 2) - (spacing * 2);
 
     // Each tile is exactly 1/3 of the available width
     final tileSize = availableWidth / 3;
@@ -178,10 +169,7 @@ class _FeatureGrid extends StatelessWidget {
             icon: LucideIcons.trendingUp,
             routeName: AppRoutes.dashboard,
           ),
-          _FeatureCard(
-            icon: LucideIcons.target,
-            routeName: AppRoutes.coach,
-          ),
+          _FeatureCard(icon: LucideIcons.target, routeName: AppRoutes.coach),
           _FeatureCard(
             icon: FeatherIcons.star,
             routeName: AppRoutes.challenges,
@@ -211,8 +199,7 @@ class _FeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final border =
-        isPrimary ? BudgetaColors.primary : BudgetaColors.cardBorder;
+    final border = isPrimary ? BudgetaColors.primary : BudgetaColors.cardBorder;
     final bg = isPrimary
         ? BudgetaColors.primary.withValues(alpha: 0.12)
         : Colors.white.withValues(alpha: 0.65);
@@ -229,21 +216,14 @@ class _FeatureCard extends StatelessWidget {
           color: bg,
           boxShadow: [
             BoxShadow(
-              color:
-                  BudgetaColors.deep.withValues(alpha: 0.12),
+              color: BudgetaColors.deep.withValues(alpha: 0.12),
               blurRadius: 20,
               spreadRadius: -1,
               offset: const Offset(0, 8),
             ),
           ],
         ),
-        child: Center(
-          child: Icon(
-            icon,
-            size: 24,
-            color: iconColor,
-          ),
-        ),
+        child: Center(child: Icon(icon, size: 24, color: iconColor)),
       ),
     );
   }

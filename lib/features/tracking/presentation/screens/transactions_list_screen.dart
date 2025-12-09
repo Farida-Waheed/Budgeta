@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../app/router.dart';
 import '../../../../app/theme.dart';
 import '../../../../shared/bottom_nav.dart';
 import '../../../../core/models/transaction.dart';
@@ -17,8 +16,7 @@ class TransactionsListScreen extends StatefulWidget {
   const TransactionsListScreen({super.key});
 
   @override
-  State<TransactionsListScreen> createState() =>
-      _TransactionsListScreenState();
+  State<TransactionsListScreen> createState() => _TransactionsListScreenState();
 }
 
 class _TransactionsListScreenState extends State<TransactionsListScreen> {
@@ -39,18 +37,14 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
   void _openRecurring() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const RecurringTransactionsScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const RecurringTransactionsScreen()),
     );
   }
 
   void _onEdit(Transaction tx) async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => EditTransactionScreen(transaction: tx),
-      ),
+      MaterialPageRoute(builder: (_) => EditTransactionScreen(transaction: tx)),
     );
   }
 
@@ -58,9 +52,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Delete transaction?'),
         content: const Text('This action cannot be undone.'),
         actions: [
@@ -70,10 +62,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -84,6 +73,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
   }
 
   void _goToDashboardReports() {
+    // back to first (dashboard) route
     Navigator.popUntil(context, (route) => route.isFirst);
   }
 
@@ -91,8 +81,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Reset tracking data?'),
         content: const Text(
           'This will remove all sample and user transactions/recurring rules '
@@ -105,16 +94,12 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Reset',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Reset', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
-    if (confirm != true) return;
-    if (!mounted) return;
+    if (confirm != true || !mounted) return;
 
     await context.read<TrackingCubit>().clearAllUserData();
   }
@@ -134,11 +119,11 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
       builder: (ctx) {
         return SafeArea(
           child: Padding(
-            padding:
-                EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            ),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: StatefulBuilder(
                 builder: (ctx, setSheetState) {
                   return Column(
@@ -177,7 +162,8 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                             selected: tempType == TransactionType.expense,
                             onTap: () {
                               setSheetState(
-                                  () => tempType = TransactionType.expense);
+                                () => tempType = TransactionType.expense,
+                              );
                             },
                           ),
                           _buildTypeChip(
@@ -185,7 +171,8 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                             selected: tempType == TransactionType.income,
                             onTap: () {
                               setSheetState(
-                                  () => tempType = TransactionType.income);
+                                () => tempType = TransactionType.income,
+                              );
                             },
                           ),
                         ],
@@ -195,9 +182,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                         alignment: Alignment.centerLeft,
                         child: Text(
                           'Category',
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelLarge
+                          style: Theme.of(context).textTheme.labelLarge
                               ?.copyWith(color: BudgetaColors.deep),
                         ),
                       ),
@@ -250,7 +235,9 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
       bottomNavigationBar: const BudgetaBottomNav(currentIndex: 1),
-      floatingActionButton: _ExpandableAddFab(
+
+      // ✅ Single main FAB, centered, same style as dashboard
+      floatingActionButton: _MainAddFab(
         onAddExpense: () => showAddTransactionBottomSheet(
           context,
           preselectedType: TransactionType.expense,
@@ -260,7 +247,8 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
           preselectedType: TransactionType.income,
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+
       body: SafeArea(
         child: Column(
           children: [
@@ -289,8 +277,9 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: BudgetaColors.accentLight
-                            .withValues(alpha: 0.15),
+                        color: BudgetaColors.accentLight.withValues(
+                          alpha: 0.15,
+                        ),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(28),
                           topRight: Radius.circular(28),
@@ -342,10 +331,12 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                           if (state is TrackingLoading ||
                               state is TrackingInitial) {
                             return const Center(
-                                child: CircularProgressIndicator());
+                              child: CircularProgressIndicator(),
+                            );
                           } else if (state is TrackingError) {
                             return Center(
-                                child: Text('Error: ${state.message}'));
+                              child: Text('Error: ${state.message}'),
+                            );
                           } else if (state is TrackingLoaded) {
                             var txs = state.transactions;
 
@@ -357,8 +348,9 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
 
                             if (_filterCategoryId != null) {
                               txs = txs
-                                  .where((t) =>
-                                      t.categoryId == _filterCategoryId)
+                                  .where(
+                                    (t) => t.categoryId == _filterCategoryId,
+                                  )
                                   .toList();
                             }
 
@@ -366,7 +358,8 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                               return const Center(
                                 child: Padding(
                                   padding: EdgeInsets.symmetric(
-                                      horizontal: 24.0),
+                                    horizontal: 24.0,
+                                  ),
                                   child: Text(
                                     'No transactions match your filters yet.\n'
                                     'Try adding a new income or expense.',
@@ -377,8 +370,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                             }
 
                             return ListView.separated(
-                              padding: const EdgeInsets.fromLTRB(
-                                  20, 4, 20, 80),
+                              padding: const EdgeInsets.fromLTRB(20, 4, 20, 80),
                               itemCount: txs.length,
                               separatorBuilder: (_, __) =>
                                   const SizedBox(height: 10),
@@ -415,8 +407,9 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
       return 'All';
     }();
 
-    final catLabel =
-        _filterCategoryId == null ? 'All categories' : _filterCategoryId!;
+    final catLabel = _filterCategoryId == null
+        ? 'All categories'
+        : _filterCategoryId!;
     return '$typeLabel · $catLabel';
   }
 
@@ -450,8 +443,8 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
         color: BudgetaColors.accentLight.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Row(
-        children: const [
+      child: const Row(
+        children: [
           Icon(Icons.auto_awesome, size: 18, color: BudgetaColors.deep),
           SizedBox(width: 8),
           Expanded(
@@ -484,10 +477,7 @@ class _TrackingHeader extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color(0xFF9A0E3A),
-            Color(0xFFFF4F8B),
-          ],
+          colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -514,10 +504,7 @@ class _TrackingHeader extends StatelessWidget {
                 SizedBox(height: 4),
                 Text(
                   'Track every penny with sparkle!',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 13),
                 ),
               ],
             ),
@@ -525,13 +512,13 @@ class _TrackingHeader extends StatelessWidget {
           IconButton(
             tooltip: 'View spending report',
             onPressed: onOpenReports,
-            icon: const Icon(
-              Icons.analytics_outlined,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.analytics_outlined, color: Colors.white),
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, color: Colors.white),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             onSelected: (value) {
               if (value == 'recurring') {
                 onOpenRecurring();
@@ -539,14 +526,26 @@ class _TrackingHeader extends StatelessWidget {
                 onClearAll();
               }
             },
-            itemBuilder: (_) => const [
+            itemBuilder: (_) => [
               PopupMenuItem(
                 value: 'recurring',
-                child: Text('Recurring & schedules'),
+                child: Row(
+                  children: const [
+                    Icon(Icons.repeat, size: 18),
+                    SizedBox(width: 8),
+                    Text('Recurring & schedules'),
+                  ],
+                ),
               ),
               PopupMenuItem(
                 value: 'reset',
-                child: Text('Reset tracking data'),
+                child: Row(
+                  children: const [
+                    Icon(Icons.delete_outline, size: 18),
+                    SizedBox(width: 8),
+                    Text('Reset tracking data'),
+                  ],
+                ),
               ),
             ],
           ),
@@ -556,66 +555,84 @@ class _TrackingHeader extends StatelessWidget {
   }
 }
 
-// ---------------- EXPANDABLE FAB ----------------
+// ---------------- MAIN ADD FAB (dashboard style) ----------------
 
-class _ExpandableAddFab extends StatefulWidget {
+class _MainAddFab extends StatefulWidget {
   final VoidCallback onAddIncome;
   final VoidCallback onAddExpense;
 
-  const _ExpandableAddFab({
-    required this.onAddIncome,
-    required this.onAddExpense,
-  });
+  const _MainAddFab({required this.onAddIncome, required this.onAddExpense});
 
   @override
-  State<_ExpandableAddFab> createState() => _ExpandableAddFabState();
+  State<_MainAddFab> createState() => _MainAddFabState();
 }
 
-class _ExpandableAddFabState extends State<_ExpandableAddFab> {
-  bool _expanded = false;
+class _MainAddFabState extends State<_MainAddFab> {
+  bool _open = false;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 210,
-      height: 180,
+      width: 120,
+      height: 140,
       child: Stack(
-        alignment: Alignment.bottomRight,
+        alignment: Alignment.bottomCenter,
         children: [
-          if (_expanded)
+          if (_open)
             Positioned(
-              right: 0,
-              bottom: 72,
+              bottom: 70,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _AddRow(
+                  _FabActionRow(
                     label: 'Add Income',
-                    color: Colors.green.shade600,
+                    color: Colors.green,
                     icon: Icons.arrow_upward,
-                    onPressed: () {
-                      setState(() => _expanded = false);
+                    onTap: () {
+                      setState(() => _open = false);
                       widget.onAddIncome();
                     },
                   ),
-                  const SizedBox(height: 8),
-                  _AddRow(
+                  const SizedBox(height: 10),
+                  _FabActionRow(
                     label: 'Add Expense',
                     color: BudgetaColors.primary,
                     icon: Icons.arrow_downward,
-                    onPressed: () {
-                      setState(() => _expanded = false);
+                    onTap: () {
+                      setState(() => _open = false);
                       widget.onAddExpense();
                     },
                   ),
                 ],
               ),
             ),
-          FloatingActionButton(
-            heroTag: 'tracking_add_fab',
-            backgroundColor: BudgetaColors.primary,
-            onPressed: () => setState(() => _expanded = !_expanded),
-            child: Icon(_expanded ? Icons.close : Icons.add),
+
+          // main square + button
+          GestureDetector(
+            onTap: () => setState(() => _open = !_open),
+            child: Container(
+              width: 58,
+              height: 58,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF4F8B), Color(0xFF9A0E3A)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 12,
+                    offset: Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Icon(
+                _open ? Icons.close : Icons.add,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
           ),
         ],
       ),
@@ -623,53 +640,59 @@ class _ExpandableAddFabState extends State<_ExpandableAddFab> {
   }
 }
 
-class _AddRow extends StatelessWidget {
+class _FabActionRow extends StatelessWidget {
   final String label;
   final Color color;
   final IconData icon;
-  final VoidCallback onPressed;
+  final VoidCallback onTap;
 
-  const _AddRow({
+  const _FabActionRow({
     required this.label,
     required this.color,
     required this.icon,
-    required this.onPressed,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          margin: const EdgeInsets.only(right: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: BudgetaColors.deep,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
               ),
-            ],
-          ),
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: BudgetaColors.deep,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
             ),
           ),
-        ),
-        FloatingActionButton.small(
-          heroTag: 'add_row_$label',
-          backgroundColor: color,
-          onPressed: onPressed,
-          child: Icon(icon),
-        ),
-      ],
+          const SizedBox(width: 8),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+        ],
+      ),
     );
   }
 }
