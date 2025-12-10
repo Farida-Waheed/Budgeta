@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/theme.dart';
 
 // shared core widgets
-import '../../../../core/widgets/gradient_header.dart';
 import '../../../../core/widgets/modal_sheet.dart';
 import '../../../../core/widgets/text_field.dart';
 import '../../../../core/widgets/primary_button.dart';

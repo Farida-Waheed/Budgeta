@@ -20,8 +20,8 @@ class PhoneAuthService {
 
         verificationCompleted: (PhoneAuthCredential credential) async {
           try {
-            final UserCredential userCredential =
-                await _auth.signInWithCredential(credential);
+            final UserCredential userCredential = await _auth
+                .signInWithCredential(credential);
 
             if (userCredential.user != null) {
               await _saveUserToFirestore(
@@ -64,15 +64,12 @@ class PhoneAuthService {
         smsCode: smsCode,
       );
 
-      final UserCredential userCredential =
-          await _auth.signInWithCredential(credential);
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
 
       if (userCredential.user != null) {
-        await _saveUserToFirestore(
-          userCredential.user!,
-          phoneNumber,
-          userName,
-        );
+        await _saveUserToFirestore(userCredential.user!, phoneNumber, userName);
       }
 
       return userCredential;
@@ -87,8 +84,7 @@ class PhoneAuthService {
     String name,
   ) async {
     try {
-      final userDoc =
-          await _firestore.collection('users').doc(user.uid).get();
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
 
       if (!userDoc.exists) {
         await _firestore.collection('users').doc(user.uid).set({

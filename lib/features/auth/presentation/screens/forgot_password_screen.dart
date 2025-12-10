@@ -27,15 +27,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(color: Colors.white),
-        ),
+        content: Text(message, style: const TextStyle(color: Colors.white)),
         backgroundColor: BudgetaColors.primary,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         duration: const Duration(seconds: 4),
       ),
@@ -47,9 +42,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     setState(() => _loading = true);
     try {
-      await _auth.sendPasswordResetEmail(
-        email: _emailController.text.trim(),
-      );
+      await _auth.sendPasswordResetEmail(email: _emailController.text.trim());
 
       _showSnackBar('Password reset link sent! Check your email.');
     } on FirebaseAuthException catch (e) {
@@ -63,14 +56,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return InputDecoration(
       labelText: 'Email',
       prefixIcon: const Icon(Icons.email),
-      labelStyle: const TextStyle(
-        fontSize: 13,
-        color: BudgetaColors.textMuted,
-      ),
+      labelStyle: const TextStyle(fontSize: 13, color: BudgetaColors.textMuted),
       filled: true,
       fillColor: BudgetaColors.accentLight.withValues(alpha: 0.06),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
         borderSide: BorderSide(
@@ -85,10 +74,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ),
       focusedBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(18)),
-        borderSide: BorderSide(
-          color: BudgetaColors.primary,
-          width: 1.6,
-        ),
+        borderSide: BorderSide(color: BudgetaColors.primary, width: 1.6),
       ),
     );
   }
@@ -170,8 +156,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                       const SizedBox(height: 20),
                       PrimaryButton(
-                        label:
-                            _loading ? 'Sending reset link…' : 'Reset password',
+                        label: _loading
+                            ? 'Sending reset link…'
+                            : 'Reset password',
                         onPressed: _loading ? null : _resetPassword,
                       ),
                     ],
