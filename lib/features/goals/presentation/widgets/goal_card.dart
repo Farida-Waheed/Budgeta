@@ -1,10 +1,9 @@
-// lib/features/goals/presentation/widgets/goal_cart.dart
+// lib/features/goals/presentation/widgets/goal_card.dart
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../core/models/goal.dart';
-import '../../../../core/widgets/card.dart';
-import 'goal_prograss_bar.dart';
+import 'goal_progress_bar.dart';
 
 class GoalCard extends StatelessWidget {
   final Goal goal;
@@ -37,14 +36,29 @@ class GoalCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child: MagicCard(
-        borderRadius: 22,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: BudgetaColors.accentLight.withValues(alpha: 0.8),
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
         padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title row
+            // Top row: icon + title + amount
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
                   width: 32,
@@ -61,41 +75,46 @@ class GoalCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    goal.name,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: BudgetaColors.deep,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                Text(
-                  '\$${goal.currentAmount.toStringAsFixed(2)}'
-                  ' of \$${goal.targetAmount.toStringAsFixed(2)}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: BudgetaColors.textMuted,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        goal.name,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: BudgetaColors.deep,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '\$${goal.currentAmount.toStringAsFixed(2)}'
+                        ' of \$${goal.targetAmount.toStringAsFixed(2)}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
 
-            // Progress bar & % label
             GoalProgressBar(progress: progress),
-            const SizedBox(height: 4),
-            Align(
-              alignment: Alignment.centerRight,
+            const SizedBox(height: 6),
+
+            Center(
               child: Text(
                 '$progressPercent% complete',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: BudgetaColors.textMuted,
-                  fontSize: 11,
+                  color: BudgetaColors.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
 
-            // Remaining + Deadline row
             Row(
               children: [
                 Column(
@@ -151,7 +170,7 @@ class GoalCard extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: BudgetaColors.accentLight.withValues(alpha: 0.28),
+                  color: BudgetaColors.accentLight.withValues(alpha: 0.25),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(

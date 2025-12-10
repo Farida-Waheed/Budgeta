@@ -15,6 +15,9 @@ import '../../../../core/models/dashboard_view.dart';
 import '../../../../core/models/insight.dart';
 import '../../data/dashboard_repository.dart' as dash_repo;
 
+// ⬇️ NEW: to use the sheet-style Add Transaction UI
+import '../../../../features/tracking/presentation/screens/add_transaction_screen.dart';
+
 // Local widgets
 import '../widgets/time_filter_bar.dart';
 import '../widgets/insights_section.dart';
@@ -78,7 +81,8 @@ class DashboardHomeScreen extends StatelessWidget {
                         // ---------------------------
                         TimeFilterBar(
                           onFilterChanged: (dash_repo.DashboardFilter f) {
-                            cubit.changeFilter(f);
+                            // 🔁 keep advanced filters, only change time range
+                            cubit.changeTimeRange(f);
                           },
                         ),
                         const SizedBox(height: 8),
@@ -108,16 +112,56 @@ class DashboardHomeScreen extends StatelessWidget {
                             child: _MetricsHint(state: state),
                           ),
 
+                        const SizedBox(height: 8),
+
+                        // ---------------------------
+                        //  ADVANCED FILTERS (type + category)
+                        // ---------------------------
+                        _AdvancedFiltersRow(
+                          filter: cubit.currentFilter,
+                          availableCategories: view.topCategories,
+                          onTypeChanged: (TransactionType? type) {
+                            final current = cubit.currentFilter;
+                            cubit.changeAdvancedFilters(
+                              typeFilter: type,
+                              categoryId: current.categoryId,
+                            );
+                          },
+                          onCategoryChanged: (String? categoryId) {
+                            final current = cubit.currentFilter;
+                            cubit.changeAdvancedFilters(
+                              typeFilter: current.type,
+                              categoryId: categoryId,
+                            );
+                          },
+                          onClearFilters: () {
+                            cubit.changeAdvancedFilters(
+                              typeFilter: null,
+                              categoryId: null,
+                            );
+                          },
+                        ),
+
                         const SizedBox(height: 12),
 
                         // ---------------------------
                         //  MAIN CONTENT
                         // ---------------------------
                         _QuickStatsRow(view: view),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
+
+                        // Comparison banner (if user tapped "Compare with previous")
+                        if (state.comparison != null) ...[
+                          _ComparisonBanner(comparison: state.comparison!),
+                          const SizedBox(height: 16),
+                        ],
 
                         // Smart Insights
                         InsightsSection(insights: state.insights),
+                        const SizedBox(height: 20),
+
+                        // Spending trend (time series)
+                        _TrendSection(points: state.trendPoints),
                         const SizedBox(height: 20),
 
                         // Top spending with drill-down
@@ -138,7 +182,7 @@ class DashboardHomeScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 20),
 
-                        // Budget health
+                        // Budget health (validate budget logic)
                         BudgetHealthSection(issues: state.budgetIssues),
                         const SizedBox(height: 20),
 
@@ -155,6 +199,10 @@ class DashboardHomeScreen extends StatelessWidget {
                                 await cubit.applyPreset(preset);
                               },
                         ),
+                        const SizedBox(height: 20),
+
+                        // Export history (reports)
+                        _ExportHistorySection(history: state.exportHistory),
                         const SizedBox(height: 20),
 
                         // Recent activity
@@ -203,10 +251,10 @@ class _AddTransactionFab extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.pushNamed(
+        // Sheet-style Add Transaction UI
+        showAddTransactionBottomSheet(
           context,
-          AppRoutes.addTransaction,
-          arguments: TransactionType.expense,
+          preselectedType: TransactionType.expense,
         );
       },
       child: Container(
@@ -251,12 +299,8 @@ class _DashboardHeader extends StatelessWidget {
 
     return Container(
       decoration: const BoxDecoration(
-        // Dark at the very top → lighter near the card
         gradient: LinearGradient(
-          colors: [
-            Color(0xFF9A0E3A), // deep top
-            Color(0xFFFF4F8B), // lighter bottom
-          ],
+          colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -269,7 +313,7 @@ class _DashboardHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Greeting + circular sparkles button (decorative only)
+          // Greeting + circular sparkles button
           Row(
             children: [
               const Expanded(
@@ -349,13 +393,13 @@ class _DashboardHeader extends StatelessWidget {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    // income – trending up (green)
+                    // income
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.trending_up_rounded,
                           size: 16,
-                          color: const Color.fromRGBO(67, 160, 71, 1),
+                          color: Color.fromRGBO(67, 160, 71, 1),
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -369,7 +413,7 @@ class _DashboardHeader extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(width: 18),
-                    // expenses – trending down (pink)
+                    // expenses
                     Row(
                       children: [
                         const Icon(
@@ -400,7 +444,156 @@ class _DashboardHeader extends StatelessWidget {
 }
 
 /// ==========================================================
-/// QUICK STATS  (styled like the reference screenshot)
+/// ADVANCED FILTERS (type + category)
+/// ==========================================================
+class _AdvancedFiltersRow extends StatelessWidget {
+  final dash_repo.DashboardFilter filter;
+  final List<CategorySpending> availableCategories;
+  final void Function(TransactionType?) onTypeChanged;
+  final void Function(String?) onCategoryChanged;
+  final VoidCallback onClearFilters;
+
+  const _AdvancedFiltersRow({
+    required this.filter,
+    required this.availableCategories,
+    required this.onTypeChanged,
+    required this.onCategoryChanged,
+    required this.onClearFilters,
+  });
+
+  String _prettyCategory(String id) {
+    if (id.isEmpty) return 'Other';
+    switch (id) {
+      case 'food':
+        return 'Groceries';
+      case 'coffee':
+        return 'Coffee';
+      case 'rent':
+        return 'Rent';
+      case 'transport':
+        return 'Transport';
+      case 'subscription':
+        return 'Subscriptions';
+      case 'salary':
+        return 'Salary';
+      default:
+        return id[0].toUpperCase() + id.substring(1);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedType = filter.type;
+    final selectedCategoryId = filter.categoryId;
+    final hasFilters = selectedType != null || selectedCategoryId != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Advanced filters',
+          style: TextStyle(
+            color: BudgetaColors.deep,
+            fontWeight: FontWeight.w700,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            // Type filters
+            Wrap(
+              spacing: 6,
+              children: [
+                FilterChip(
+                  label: const Text('All'),
+                  selected: selectedType == null,
+                  onSelected: (_) => onTypeChanged(null),
+                ),
+                FilterChip(
+                  label: const Text('Expenses'),
+                  selected: selectedType == TransactionType.expense,
+                  onSelected: (_) => onTypeChanged(TransactionType.expense),
+                ),
+                FilterChip(
+                  label: const Text('Income'),
+                  selected: selectedType == TransactionType.income,
+                  onSelected: (_) => onTypeChanged(TransactionType.income),
+                ),
+              ],
+            ),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: () async {
+                if (availableCategories.isEmpty) {
+                  onCategoryChanged(null);
+                  return;
+                }
+
+                final uniqueIds = {
+                  for (final c in availableCategories) c.categoryId,
+                }.toList();
+
+                final chosen = await showModalBottomSheet<String?>(
+                  context: context,
+                  builder: (ctx) {
+                    return SafeArea(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const ListTile(
+                            title: Text(
+                              'Filter by category',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: BudgetaColors.deep,
+                              ),
+                            ),
+                          ),
+                          const Divider(height: 1),
+                          ListTile(
+                            title: const Text('All categories'),
+                            onTap: () => Navigator.of(ctx).pop(null),
+                          ),
+                          for (final id in uniqueIds)
+                            ListTile(
+                              title: Text(_prettyCategory(id)),
+                              onTap: () => Navigator.of(ctx).pop(id),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+
+                onCategoryChanged(chosen);
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: BudgetaColors.primary,
+                textStyle: const TextStyle(fontSize: 12.5),
+              ),
+              icon: const Icon(Icons.filter_list_rounded, size: 16),
+              label: Text(
+                selectedCategoryId == null
+                    ? 'Category: All'
+                    : 'Category: ${_prettyCategory(selectedCategoryId)}',
+              ),
+            ),
+            if (hasFilters)
+              IconButton(
+                tooltip: 'Clear advanced filters',
+                onPressed: onClearFilters,
+                icon: const Icon(Icons.clear_rounded, size: 18),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// ==========================================================
+/// QUICK STATS
 /// ==========================================================
 class _QuickStatsRow extends StatelessWidget {
   final DashboardView view;
@@ -411,6 +604,7 @@ class _QuickStatsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final totalThisPeriod = view.totalExpenses;
     final distinctCategories = view.topCategories.length;
+    final leftToSpend = view.leftToSpend;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -428,9 +622,9 @@ class _QuickStatsRow extends StatelessWidget {
           children: [
             Expanded(
               child: _QuickStatCard(
-                icon: Icons.currency_pound, // pound sign
+                icon: Icons.currency_pound,
                 title: 'E£${totalThisPeriod.toStringAsFixed(2)}',
-                subtitle: 'This Month',
+                subtitle: 'Total spending',
               ),
             ),
             const SizedBox(width: 12),
@@ -439,6 +633,14 @@ class _QuickStatsRow extends StatelessWidget {
                 icon: Icons.savings_rounded,
                 title: '$distinctCategories',
                 subtitle: 'Categories',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _QuickStatCard(
+                icon: Icons.account_balance_wallet_rounded,
+                title: 'E£${leftToSpend.toStringAsFixed(2)}',
+                subtitle: 'Left to spend',
               ),
             ),
           ],
@@ -484,7 +686,6 @@ class _QuickStatCard extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // top circular icon (same vibe as screenshot)
           Container(
             width: 44,
             height: 44,
@@ -520,6 +721,202 @@ class _QuickStatCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// ==========================================================
+/// COMPARISON BANNER (current vs previous period)
+/// ==========================================================
+class _ComparisonBanner extends StatelessWidget {
+  final dash_repo.PeriodComparison comparison;
+
+  const _ComparisonBanner({required this.comparison});
+
+  double _percentChange(double oldVal, double newVal) {
+    if (oldVal == 0) return 0;
+    return ((newVal - oldVal) / oldVal) * 100;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final current = comparison.current;
+    final previous = comparison.previous;
+
+    final incomeChange = _percentChange(
+      previous.totalIncome,
+      current.totalIncome,
+    );
+    final expenseChange = _percentChange(
+      previous.totalExpenses,
+      current.totalExpenses,
+    );
+
+    String formatChange(double v) {
+      if (v == 0) return 'no change';
+      final abs = v.abs().toStringAsFixed(1);
+      return v > 0 ? '+$abs%' : '-$abs%';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: BudgetaColors.accentLight.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: BudgetaColors.accentLight.withValues(alpha: 0.9),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Compared to previous period',
+            style: TextStyle(
+              color: BudgetaColors.deep,
+              fontWeight: FontWeight.w700,
+              fontSize: 13.5,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.trending_up_rounded,
+                      size: 16,
+                      color: Colors.green,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        'Income: ${formatChange(incomeChange)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: BudgetaColors.deep,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.trending_down_rounded,
+                      size: 16,
+                      color: BudgetaColors.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        'Expenses: ${formatChange(expenseChange)}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: BudgetaColors.deep,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// ==========================================================
+/// SPENDING TREND (simple bar chart)
+/// ==========================================================
+class _TrendSection extends StatelessWidget {
+  final List<dash_repo.TimeSeriesPoint> points;
+
+  const _TrendSection({required this.points});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Spending trend 📈',
+          style: TextStyle(
+            color: BudgetaColors.deep,
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 10),
+        if (points.isEmpty)
+          const Text(
+            'No spending trend yet. Track more expenses to see your pattern.',
+            style: TextStyle(fontSize: 12, color: BudgetaColors.textMuted),
+          )
+        else
+          SizedBox(height: 120, child: _TrendBars(points: points)),
+      ],
+    );
+  }
+}
+
+class _TrendBars extends StatelessWidget {
+  final List<dash_repo.TimeSeriesPoint> points;
+
+  const _TrendBars({required this.points});
+
+  @override
+  Widget build(BuildContext context) {
+    final maxValue = points
+        .map((e) => e.value)
+        .fold<double>(0, (a, b) => b > a ? b : a);
+    final maxBarHeight = 80.0;
+
+    String shortDate(DateTime d) {
+      return '${d.month}/${d.day}';
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        for (final p in points)
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(
+                      width: 12,
+                      height: maxValue == 0
+                          ? 0
+                          : (p.value / maxValue) * maxBarHeight,
+                      decoration: BoxDecoration(
+                        color: BudgetaColors.primary,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  shortDate(p.date),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: BudgetaColors.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }
@@ -736,10 +1133,7 @@ class _RecentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isExpense = transaction.type == TransactionType.expense;
     final sign = isExpense ? '-' : '+';
-
-    // 💚 UI change: use palette green for income instead of generic green
     final color = isExpense ? BudgetaColors.primary : BudgetaColors.success;
-
     final dateStr = transaction.date.toLocal().toString().split(' ').first;
 
     return Container(
@@ -752,14 +1146,12 @@ class _RecentTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // circular icon like design
           Container(
             width: 32,
             height: 32,
             decoration: BoxDecoration(
               color: isExpense
                   ? BudgetaColors.accentLight.withValues(alpha: 0.5)
-                  // 💚 UI change: use success color with light opacity
                   : BudgetaColors.success.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
@@ -806,7 +1198,7 @@ class _RecentTile extends StatelessWidget {
 }
 
 /// ==========================================================
-/// EXPORT BUTTONS + METRICS + PRESETS
+/// EXPORT BUTTONS + METRICS + PRESETS + EXPORT HISTORY
 /// ==========================================================
 class _ExportButtons extends StatelessWidget {
   final bool isExporting;
@@ -994,6 +1386,87 @@ class _PresetChip extends StatelessWidget {
   }
 }
 
+/// ====== EXPORT HISTORY UI ==================================================
+class _ExportHistorySection extends StatelessWidget {
+  final List<dash_repo.SpendingReport> history;
+
+  const _ExportHistorySection({required this.history});
+
+  @override
+  Widget build(BuildContext context) {
+    if (history.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final items = history.take(5).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Export history',
+          style: TextStyle(
+            color: BudgetaColors.deep,
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Column(
+          children: [
+            for (final r in items)
+              Container(
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: BudgetaColors.cardBorder),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.insert_drive_file_rounded,
+                      size: 18,
+                      color: BudgetaColors.primary,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            r.title,
+                            style: const TextStyle(
+                              color: BudgetaColors.deep,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            r.generatedAt.toLocal().toString().split('.').first,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: BudgetaColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 /// ==========================================================
 /// HELPERS
 /// ==========================================================
@@ -1003,7 +1476,6 @@ Future<String?> _askPresetNameDialog(BuildContext context) async {
     context: context,
     builder: (ctx) {
       return AlertDialog(
-        // UI: rounded, white, consistent with app cards
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
         backgroundColor: Colors.white,
         titlePadding: const EdgeInsets.only(
@@ -1071,14 +1543,14 @@ Future<String?> _askPresetNameDialog(BuildContext context) async {
             child: const Text(
               'Cancel',
               style: TextStyle(
-                color: BudgetaColors.primary, // 💗 primary text
+                color: BudgetaColors.primary,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: BudgetaColors.primary, // 💗 vibrant pink
+              backgroundColor: BudgetaColors.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               shape: RoundedRectangleBorder(
@@ -1112,7 +1584,7 @@ Future<void> _showCategoryTransactionsSheet({
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.transparent, // for rounded container
+    backgroundColor: Colors.transparent,
     builder: (ctx) {
       final sheetHeight = MediaQuery.of(ctx).size.height * 0.75;
 

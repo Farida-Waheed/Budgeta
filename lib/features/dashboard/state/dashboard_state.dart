@@ -13,12 +13,16 @@ class DashboardLoaded extends DashboardState {
   final List<dash_repo.DashboardPreset> presets;
   final List<dash_repo.BudgetIssue> budgetIssues;
 
-  // Extra optional fields for compare/export/pipelines
+  // Extra fields
   final bool isRefreshing;
   final bool isExporting;
   final dash_repo.PeriodComparison? comparison;
   final dash_repo.SpendingReport? lastReport;
   final Map<String, dynamic>? performanceMetrics;
+
+  /// New: export history + trend points
+  final List<dash_repo.SpendingReport> exportHistory;
+  final List<dash_repo.TimeSeriesPoint> trendPoints;
 
   DashboardLoaded({
     required this.view,
@@ -30,6 +34,8 @@ class DashboardLoaded extends DashboardState {
     this.comparison,
     this.lastReport,
     this.performanceMetrics,
+    this.exportHistory = const [],
+    this.trendPoints = const [],
   });
 
   DashboardLoaded copyWith({
@@ -42,6 +48,8 @@ class DashboardLoaded extends DashboardState {
     dash_repo.PeriodComparison? comparison,
     dash_repo.SpendingReport? lastReport,
     Map<String, dynamic>? performanceMetrics,
+    List<dash_repo.SpendingReport>? exportHistory,
+    List<dash_repo.TimeSeriesPoint>? trendPoints,
   }) {
     return DashboardLoaded(
       view: view ?? this.view,
@@ -53,6 +61,8 @@ class DashboardLoaded extends DashboardState {
       comparison: comparison ?? this.comparison,
       lastReport: lastReport ?? this.lastReport,
       performanceMetrics: performanceMetrics ?? this.performanceMetrics,
+      exportHistory: exportHistory ?? this.exportHistory,
+      trendPoints: trendPoints ?? this.trendPoints,
     );
   }
 }

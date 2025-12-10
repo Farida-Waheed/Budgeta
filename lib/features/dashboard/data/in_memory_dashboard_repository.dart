@@ -12,8 +12,33 @@ class InMemoryDashboardRepository implements DashboardRepository {
   final _rng = Random();
 
   final Map<String, List<DashboardPreset>> _presetsByUser = {};
+  final Map<String, List<SpendingReport>> _reportsByUser = {};
 
   InMemoryDashboardRepository({required this.trackingRepository});
+
+  // ------------------------------------
+  // Helpers
+  // ------------------------------------
+  List<Transaction> _applyAdvancedFilters(
+    List<Transaction> txs,
+    DashboardFilter filter,
+  ) {
+    return txs.where((t) {
+      // Transaction type filter
+      if (filter.type != null && t.type != filter.type) {
+        return false;
+      }
+
+      // Category filter
+      if (filter.categoryId != null &&
+          filter.categoryId!.isNotEmpty &&
+          t.categoryId != filter.categoryId) {
+        return false;
+      }
+
+      return true;
+    }).toList();
+  }
 
   // -------- DASHBOARD OVERVIEW --------
   @override
@@ -27,42 +52,39 @@ class InMemoryDashboardRepository implements DashboardRepository {
       to: filter.to,
     );
 
+    final filteredTxs = _applyAdvancedFilters(txs, filter);
+
     double income = 0;
     double expenses = 0;
     final byCategory = <String, double>{};
 
-    for (final t in txs) {
+    for (final t in filteredTxs) {
       if (t.type == TransactionType.income) {
         // Income affects income/net only, NOT spending per category
         income += t.amount;
       } else {
         // Expense
         expenses += t.amount;
-        byCategory[t.categoryId] =
-            (byCategory[t.categoryId] ?? 0) + t.amount;
+        byCategory[t.categoryId] = (byCategory[t.categoryId] ?? 0) + t.amount;
       }
     }
 
     final net = income - expenses;
     final leftToSpend = net > 0 ? net : 0.0;
 
-    final topCategories = byCategory.entries
-        .map(
-          (e) => CategorySpending(
-            categoryId: e.key,
-            amount: e.value,
-          ),
-        )
-        .toList()
-      ..sort((a, b) => b.amount.compareTo(a.amount));
+    final topCategories =
+        byCategory.entries
+            .map((e) => CategorySpending(categoryId: e.key, amount: e.value))
+            .toList()
+          ..sort((a, b) => b.amount.compareTo(a.amount));
 
     final hasData = income > 0 || expenses > 0;
 
     final isOnTrack = !hasData
         ? true // no data → don't scare the user
         : (income == 0)
-            ? false
-            : (expenses / income) < 0.8;
+        ? false
+        : (expenses / income) < 0.8;
 
     return DashboardView(
       totalIncome: income,
@@ -84,10 +106,7 @@ class InMemoryDashboardRepository implements DashboardRepository {
     final now = DateTime.now();
 
     // Current period view
-    final current = await getDashboardOverview(
-      userId: userId,
-      filter: filter,
-    );
+    final current = await getDashboardOverview(userId: userId, filter: filter);
 
     // Previous period view (same length window)
     final diff = filter.to.difference(filter.from);
@@ -95,7 +114,12 @@ class InMemoryDashboardRepository implements DashboardRepository {
     final prevFrom = prevTo.subtract(diff);
     final previous = await getDashboardOverview(
       userId: userId,
-      filter: DashboardFilter(from: prevFrom, to: prevTo),
+      filter: DashboardFilter(
+        from: prevFrom,
+        to: prevTo,
+        type: filter.type,
+        categoryId: filter.categoryId,
+      ),
     );
 
     final insights = <Insight>[];
@@ -180,7 +204,8 @@ class InMemoryDashboardRepository implements DashboardRepository {
       from: filter.from,
       to: filter.to,
     );
-    return txs.where((t) => t.categoryId == categoryId).toList();
+    final filtered = _applyAdvancedFilters(txs, filter);
+    return filtered.where((t) => t.categoryId == categoryId).toList();
   }
 
   // -------- Compare Periods --------
@@ -200,7 +225,12 @@ class InMemoryDashboardRepository implements DashboardRepository {
 
     final previous = await getDashboardOverview(
       userId: userId,
-      filter: DashboardFilter(from: previousFrom, to: previousTo),
+      filter: DashboardFilter(
+        from: previousFrom,
+        to: previousTo,
+        type: currentFilter.type,
+        categoryId: currentFilter.categoryId,
+      ),
     );
 
     return PeriodComparison(current: current, previous: previous);
@@ -238,10 +268,7 @@ class InMemoryDashboardRepository implements DashboardRepository {
     required DashboardFilter filter,
     String? title,
   }) async {
-    final summary = await getDashboardOverview(
-      userId: userId,
-      filter: filter,
-    );
+    final summary = await getDashboardOverview(userId: userId, filter: filter);
     final report = SpendingReport(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: title ?? 'Spending report',
@@ -250,6 +277,10 @@ class InMemoryDashboardRepository implements DashboardRepository {
       categories: summary.topCategories,
       generatedAt: DateTime.now(),
     );
+
+    final list = _reportsByUser.putIfAbsent(userId, () => []);
+    list.add(report);
+
     return report;
   }
 
@@ -264,6 +295,14 @@ class InMemoryDashboardRepository implements DashboardRepository {
   Future<String> exportReportAsCsv(SpendingReport report) async {
     await Future.delayed(const Duration(milliseconds: 300));
     return '/fake/path/report_${report.id}.csv';
+  }
+
+  @override
+  Future<List<SpendingReport>> getExportHistory(String userId) async {
+    final list = _reportsByUser[userId] ?? [];
+    final sorted = [...list]
+      ..sort((a, b) => b.generatedAt.compareTo(a.generatedAt));
+    return List.unmodifiable(sorted);
   }
 
   // -------- Pipelines + Monitoring --------
@@ -332,5 +371,34 @@ class InMemoryDashboardRepository implements DashboardRepository {
     }
 
     return issues;
+  }
+
+  // -------- Spending Trend --------
+  @override
+  Future<List<TimeSeriesPoint>> getSpendingTrend({
+    required String userId,
+    required DashboardFilter filter,
+  }) async {
+    final txs = await trackingRepository.getTransactions(
+      userId: userId,
+      from: filter.from,
+      to: filter.to,
+    );
+
+    final filtered = _applyAdvancedFilters(txs, filter);
+
+    final Map<DateTime, double> byDay = {};
+    for (final t in filtered) {
+      // Trend focuses on spending (expenses)
+      if (t.type != TransactionType.expense) continue;
+
+      final day = DateTime(t.date.year, t.date.month, t.date.day);
+      byDay[day] = (byDay[day] ?? 0) + t.amount;
+    }
+
+    final days = byDay.keys.toList()..sort();
+    return days
+        .map((d) => TimeSeriesPoint(date: d, value: byDay[d] ?? 0))
+        .toList();
   }
 }

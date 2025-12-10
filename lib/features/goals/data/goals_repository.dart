@@ -1,4 +1,3 @@
-// lib/features/goals/data/goals_repository.dart
 import '../../../core/models/goal.dart';
 
 /// -------- Contract / interface ----------
@@ -21,36 +20,10 @@ abstract class GoalsRepository {
 }
 
 /// -------- In-memory implementation ----------
-/// Used now to make the app interactive without a real backend.
-/// Later you can add a DB / API repository that also implements
-/// [GoalsRepository] without changing the UI.
+/// Only stores whatever the user creates in this session.
+/// No static goals are pre-loaded.
 class InMemoryGoalsRepository implements GoalsRepository {
   final List<Goal> _store = [];
-
-  InMemoryGoalsRepository() {
-    final now = DateTime.now();
-    _store.addAll([
-      Goal(
-        id: 'g1',
-        userId: 'demo-user',
-        name: 'Dream Vacation',
-        targetAmount: 5000,
-        currentAmount: 1250,
-        createdAt: now.subtract(const Duration(days: 30)),
-        targetDate: DateTime(now.year + 1, 6, 1),
-        isPrimary: true,
-      ),
-      Goal(
-        id: 'g2',
-        userId: 'demo-user',
-        name: 'Emergency Fund',
-        targetAmount: 10000,
-        currentAmount: 3200,
-        createdAt: now.subtract(const Duration(days: 60)),
-        targetDate: DateTime(now.year + 1, 12, 3),
-      ),
-    ]);
-  }
 
   Future<T> _delay<T>(T value) async {
     await Future.delayed(const Duration(milliseconds: 350));
@@ -98,17 +71,8 @@ class InMemoryGoalsRepository implements GoalsRepository {
     }
 
     final g = _store[idx];
-    final updated = Goal(
-      id: g.id,
-      userId: g.userId,
-      name: g.name,
-      targetAmount: g.targetAmount,
-      currentAmount: g.currentAmount + amount,
-      createdAt: g.createdAt,
-      targetDate: g.targetDate,
-      projection: g.projection,
-      isPrimary: g.isPrimary,
-    );
+    final updated = g.copyWith(currentAmount: g.currentAmount + amount);
+
     _store[idx] = updated;
     return _delay(updated);
   }
@@ -127,7 +91,7 @@ class InMemoryGoalsRepository implements GoalsRepository {
       );
     }
 
-    // Very simple “AI”: assume we want to finish in ~6 months
+    // Simple “AI”: finish in ~6 months
     const months = 6;
     final suggested = remaining / months;
     final completion = DateTime.now().add(const Duration(days: 30 * months));

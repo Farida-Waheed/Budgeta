@@ -3,14 +3,20 @@ import '../../../core/models/dashboard_view.dart';
 import '../../../core/models/insight.dart';
 import '../../../core/models/transaction.dart';
 
-/// Simple time-range filter for the dashboard.
+/// Simple time-range + advanced filters for the dashboard.
 class DashboardFilter {
   final DateTime from;
   final DateTime to;
 
+  /// Optional advanced filters
+  final TransactionType? type; // null = all types
+  final String? categoryId; // null/empty = all categories
+
   const DashboardFilter({
     required this.from,
     required this.to,
+    this.type,
+    this.categoryId,
   });
 
   /// Current month (1st day → first day of next month)
@@ -34,8 +40,11 @@ class DashboardFilter {
   factory DashboardFilter.thisWeek() {
     final now = DateTime.now();
     final weekday = now.weekday; // 1 = Mon, 7 = Sun
-    final from = DateTime(now.year, now.month, now.day)
-        .subtract(Duration(days: weekday - 1));
+    final from = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: weekday - 1));
     final to = from.add(const Duration(days: 7));
     return DashboardFilter(from: from, to: to);
   }
@@ -46,6 +55,26 @@ class DashboardFilter {
     final to = DateTime.now();
     return DashboardFilter(from: from, to: to);
   }
+
+  /// Helper to build a new filter with same time range but different advanced filters.
+  DashboardFilter withAdvanced({TransactionType? type, String? categoryId}) {
+    return DashboardFilter(
+      from: from,
+      to: to,
+      type: type,
+      categoryId: categoryId,
+    );
+  }
+
+  /// Helper to build a new filter with updated time range, keeping advanced filters.
+  DashboardFilter withTime({required DateTime from, required DateTime to}) {
+    return DashboardFilter(
+      from: from,
+      to: to,
+      type: type,
+      categoryId: categoryId,
+    );
+  }
 }
 
 /// Used for "Save Dashboard Preset"
@@ -54,11 +83,7 @@ class DashboardPreset {
   final String name;
   final DashboardFilter filter;
 
-  DashboardPreset({
-    required this.id,
-    required this.name,
-    required this.filter,
-  });
+  DashboardPreset({required this.id, required this.name, required this.filter});
 }
 
 /// Used for "Compare Periods"
@@ -66,10 +91,7 @@ class PeriodComparison {
   final DashboardView current;
   final DashboardView previous;
 
-  PeriodComparison({
-    required this.current,
-    required this.previous,
-  });
+  PeriodComparison({required this.current, required this.previous});
 }
 
 /// Used for "Generate Spending Reports" + "Export Report"
@@ -89,6 +111,14 @@ class SpendingReport {
     required this.categories,
     required this.generatedAt,
   });
+}
+
+/// Simple time-series point for spending trend charts.
+class TimeSeriesPoint {
+  final DateTime date; // day
+  final double value; // total spending that day
+
+  TimeSeriesPoint({required this.date, required this.value});
 }
 
 /// Used for "Validate Budget Logic"
@@ -117,7 +147,7 @@ abstract class DashboardRepository {
     required DashboardFilter filter,
   });
 
-  // UC: Drill down to transactions
+  // UC: Drill down to transactions (still by category, but respects advanced filter where relevant)
   Future<List<Transaction>> getTransactionsForCategory({
     required String userId,
     required String categoryId,
@@ -138,10 +168,7 @@ abstract class DashboardRepository {
 
   Future<List<DashboardPreset>> getPresets(String userId);
 
-  Future<void> deletePreset({
-    required String userId,
-    required String presetId,
-  });
+  Future<void> deletePreset({required String userId, required String presetId});
 
   // UC: Reports / Export
   Future<SpendingReport> generateSpendingReport({
@@ -153,12 +180,21 @@ abstract class DashboardRepository {
   Future<String> exportReportAsPdf(SpendingReport report);
   Future<String> exportReportAsCsv(SpendingReport report);
 
+  /// New: export history per user
+  Future<List<SpendingReport>> getExportHistory(String userId);
+
   // UC: Pipelines / Monitoring
   Future<void> refreshPipelines(String userId);
   Future<Map<String, dynamic>> getPerformanceMetrics();
 
   // UC: Validate budget logic
   Future<List<BudgetIssue>> validateBudgetLogic({
+    required String userId,
+    required DashboardFilter filter,
+  });
+
+  /// New: Spending trend (time-series) for charts
+  Future<List<TimeSeriesPoint>> getSpendingTrend({
     required String userId,
     required DashboardFilter filter,
   });

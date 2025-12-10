@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../app/theme.dart';
 import '../../../../shared/bottom_nav.dart';
 import '../../../../core/models/transaction.dart';
+import '../../../../core/models/tracking_summary.dart';
 import '../../state/tracking_cubit.dart';
 
 import '../widgets/transaction_tile.dart';
@@ -12,6 +13,7 @@ import '../widgets/category_chip_list.dart';
 import 'add_transaction_screen.dart';
 import 'edit_transaction_screen.dart';
 import 'recurring_transactions_screen.dart';
+import 'category_rules_screen.dart';
 
 class TransactionsListScreen extends StatefulWidget {
   const TransactionsListScreen({super.key});
@@ -100,6 +102,163 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     if (confirm != true || !mounted) return;
 
     await context.read<TrackingCubit>().clearAllUserData();
+  }
+
+  // ---------- NEW: OPEN CATEGORY RULES (ADMIN) ----------
+
+  void _openCategoryRules() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CategoryRulesScreen()),
+    );
+  }
+
+  // ---------- NEW: RUN RECURRING NOW ----------
+
+  Future<void> _runRecurringNow() async {
+    final cubit = context.read<TrackingCubit>();
+    final created = await cubit.processRecurringForToday();
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          created == 0
+              ? 'No recurring transactions were due today.'
+              : 'Auto-posted $created recurring transaction(s).',
+        ),
+      ),
+    );
+  }
+
+  // ---------- NEW: QUICK SUMMARY ----------
+
+  Future<void> _showQuickSummary() async {
+    final cubit = context.read<TrackingCubit>();
+    late TrackingSummary summary;
+
+    try {
+      summary = await cubit.getSummary();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load summary: $e')));
+      return;
+    }
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final net = summary.totalIncome - summary.totalExpense;
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          title: const Text('Quick Summary'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _summaryRow('Income', summary.totalIncome),
+              const SizedBox(height: 4),
+              _summaryRow('Expenses', summary.totalExpense),
+              const SizedBox(height: 4),
+              _summaryRow('Net', net),
+              const SizedBox(height: 12),
+              const Text(
+                'Per category (top few):',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 4),
+              ...summary.perCategoryTotals.entries
+                  .take(5)
+                  .map(
+                    (e) => Text(
+                      '• ${_capitalize(e.key)}: ${e.value.toStringAsFixed(2)}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  static Widget _summaryRow(String label, double value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label),
+        Text(
+          value.toStringAsFixed(2),
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ],
+    );
+  }
+
+  static String _capitalize(String s) {
+    if (s.isEmpty) return s;
+    return s[0].toUpperCase() + s.substring(1);
+  }
+
+  // ---------- NEW: EXPORT CSV ----------
+
+  Future<void> _exportCsv() async {
+    final cubit = context.read<TrackingCubit>();
+
+    String csv;
+    try {
+      csv = await cubit.exportCsv(
+        // could also pass filters here if you want export = current view:
+        categoryId: _filterCategoryId,
+        type: _filterType,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to export CSV: $e')));
+      return;
+    }
+
+    if (!mounted) return;
+
+    // For MVP: just show the CSV in a dialog so it can be copied.
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          title: const Text('Exported CSV'),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 250,
+            child: SingleChildScrollView(
+              child: SelectableText(csv, style: const TextStyle(fontSize: 11)),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // ---------------- FILTERS SHEET ----------------
@@ -332,6 +491,10 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
               onOpenReports: _goToDashboardReports,
               onOpenRecurring: _openRecurring,
               onClearAll: _clearAllData,
+              onOpenCategoryRules: _openCategoryRules,
+              onRunRecurringNow: _runRecurringNow,
+              onShowSummary: _showQuickSummary,
+              onExportCsv: _exportCsv,
             ),
             Expanded(
               child: Container(
@@ -542,10 +705,19 @@ class _TrackingHeader extends StatelessWidget {
   final VoidCallback onOpenRecurring;
   final VoidCallback onClearAll;
 
+  final VoidCallback onOpenCategoryRules;
+  final Future<void> Function() onRunRecurringNow;
+  final Future<void> Function() onShowSummary;
+  final Future<void> Function() onExportCsv;
+
   const _TrackingHeader({
     required this.onOpenReports,
     required this.onOpenRecurring,
     required this.onClearAll,
+    required this.onOpenCategoryRules,
+    required this.onRunRecurringNow,
+    required this.onShowSummary,
+    required this.onExportCsv,
   });
 
   @override
@@ -595,31 +767,90 @@ class _TrackingHeader extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-            onSelected: (value) {
-              if (value == 'recurring') {
-                onOpenRecurring();
-              } else if (value == 'reset') {
-                onClearAll();
+            onSelected: (value) async {
+              switch (value) {
+                case 'recurring':
+                  onOpenRecurring();
+                  break;
+                case 'rules':
+                  onOpenCategoryRules();
+                  break;
+                case 'runRecurring':
+                  await onRunRecurringNow();
+                  break;
+                case 'summary':
+                  await onShowSummary();
+                  break;
+                case 'export':
+                  await onExportCsv();
+                  break;
+                case 'reset':
+                  onClearAll();
+                  break;
               }
             },
             itemBuilder: (_) => [
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: 'recurring',
                 child: Row(
-                  children: const [
+                  children: [
                     Icon(Icons.repeat, size: 18),
                     SizedBox(width: 8),
                     Text('Recurring & schedules'),
                   ],
                 ),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
+                value: 'rules',
+                child: Row(
+                  children: [
+                    Icon(Icons.auto_awesome, size: 18),
+                    SizedBox(width: 8),
+                    Text('Category auto-rules'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'runRecurring',
+                child: Row(
+                  children: [
+                    Icon(Icons.play_circle_outline, size: 18),
+                    SizedBox(width: 8),
+                    Text('Run recurring now'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'summary',
+                child: Row(
+                  children: [
+                    Icon(Icons.summarize_outlined, size: 18),
+                    SizedBox(width: 8),
+                    Text('Quick summary'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'export',
+                child: Row(
+                  children: [
+                    Icon(Icons.file_download_outlined, size: 18),
+                    SizedBox(width: 8),
+                    Text('Export CSV'),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
                 value: 'reset',
                 child: Row(
-                  children: const [
-                    Icon(Icons.delete_outline, size: 18),
+                  children: [
+                    Icon(Icons.delete_outline, size: 18, color: Colors.red),
                     SizedBox(width: 8),
-                    Text('Reset tracking data'),
+                    Text(
+                      'Reset tracking data',
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ],
                 ),
               ),

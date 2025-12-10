@@ -16,12 +16,10 @@ class DashboardCubit extends Cubit<DashboardState> {
       dash_repo.DashboardFilter.currentMonth();
   dash_repo.DashboardFilter get currentFilter => _lastFilter;
 
-  DashboardCubit({
-    required this.repository,
-    required this.userId,
-  }) : super(DashboardInitial());
+  DashboardCubit({required this.repository, required this.userId})
+    : super(DashboardInitial());
 
-  /// Main loader: overview + insights + presets + budget issues
+  /// Main loader: overview + insights + presets + budget issues + trend + export history
   Future<void> loadDashboard([dash_repo.DashboardFilter? filter]) async {
     final effectiveFilter = filter ?? _lastFilter;
     _lastFilter = effectiveFilter;
@@ -41,6 +39,11 @@ class DashboardCubit extends Cubit<DashboardState> {
         userId: userId,
         filter: effectiveFilter,
       );
+      final trend = await repository.getSpendingTrend(
+        userId: userId,
+        filter: effectiveFilter,
+      );
+      final history = await repository.getExportHistory(userId);
 
       emit(
         DashboardLoaded(
@@ -48,6 +51,8 @@ class DashboardCubit extends Cubit<DashboardState> {
           insights: insights,
           presets: presets,
           budgetIssues: budgetIssues,
+          trendPoints: trend,
+          exportHistory: history,
         ),
       );
     } catch (e) {
@@ -64,7 +69,28 @@ class DashboardCubit extends Cubit<DashboardState> {
     await loadDashboard(_lastFilter);
   }
 
-  /// Change filter (week, month, etc.)
+  /// Change *time range* filter (keep advanced filters)
+  Future<void> changeTimeRange(dash_repo.DashboardFilter timeFilter) async {
+    final updated = _lastFilter.withTime(
+      from: timeFilter.from,
+      to: timeFilter.to,
+    );
+    await loadDashboard(updated);
+  }
+
+  /// Change advanced filters (type + category), keep time range
+  Future<void> changeAdvancedFilters({
+    TransactionType? typeFilter,
+    String? categoryId,
+  }) async {
+    final updated = _lastFilter.withAdvanced(
+      type: typeFilter,
+      categoryId: categoryId,
+    );
+    await loadDashboard(updated);
+  }
+
+  /// For compatibility if anything else calls it
   Future<void> changeFilter(dash_repo.DashboardFilter filter) async {
     await loadDashboard(filter);
   }
@@ -130,10 +156,13 @@ class DashboardCubit extends Cubit<DashboardState> {
       await repository.exportReportAsCsv(report);
     }
 
+    final history = await repository.getExportHistory(userId);
+
     emit(
       currentState.copyWith(
         isExporting: false,
         lastReport: report,
+        exportHistory: history,
       ),
     );
   }
@@ -161,6 +190,11 @@ class DashboardCubit extends Cubit<DashboardState> {
       userId: userId,
       filter: _lastFilter,
     );
+    final trend = await repository.getSpendingTrend(
+      userId: userId,
+      filter: _lastFilter,
+    );
+    final history = await repository.getExportHistory(userId);
 
     emit(
       currentState.copyWith(
@@ -170,6 +204,8 @@ class DashboardCubit extends Cubit<DashboardState> {
         insights: insights,
         presets: presets,
         budgetIssues: budgetIssues,
+        trendPoints: trend,
+        exportHistory: history,
       ),
     );
   }

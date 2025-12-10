@@ -1,3 +1,4 @@
+// lib/features/goals/presentation/screens/goals_home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -16,8 +17,8 @@ import '../../state/goals_cubit.dart';
 import '../../data/goals_repository.dart';
 
 // local widgets/screens
-import '../../../goals/presentation/widgets/goal_card.dart';
-import '../../../goals/presentation/screens/goal_detail_screen.dart';
+import '../widgets/goal_card.dart';
+import 'goal_detail_screen.dart';
 import 'goal_edit_screen.dart';
 
 class GoalsHomeScreen extends StatelessWidget {
@@ -59,6 +60,12 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
+      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 2),
+
+      // FAB: same size & placement as Expense Tracking main +
+      floatingActionButton: _AddGoalFab(onTap: _openCreateGoalSheet),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+
       body: SafeArea(
         child: Column(
           children: [
@@ -88,60 +95,90 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
                   final loaded = state as GoalsLoaded;
                   final goals = loaded.goals;
 
-                  return Stack(
-                    children: [
-                      SingleChildScrollView(
-                        padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Header under gradient – match "All Transactions 💖"
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12.0),
-                              child: Text(
-                                'Your Treasure Quests ✨',
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      color: BudgetaColors.deep,
-                                    ),
-                              ),
+                  // Match Tracking: rounded container + top bar
+                  return Container(
+                    decoration: const BoxDecoration(
+                      color: BudgetaColors.background,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(28),
+                        topRight: Radius.circular(28),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Upper bar – same style as "All Transactions 💖"
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: BudgetaColors.accentLight.withValues(
+                              alpha: 0.15,
                             ),
-                            if (goals.isEmpty)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 40,
-                                ),
-                                child: Text(
-                                  'No goals yet.\nTap the + button to start your first quest ✨',
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context).textTheme.bodyMedium
-                                      ?.copyWith(
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(28),
+                              topRight: Radius.circular(28),
+                            ),
+                          ),
+                          child: const Text(
+                            'Your Treasure Quests ✨',
+                            style: TextStyle(
+                              color: BudgetaColors.deep,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+
+                        // Content
+                        Expanded(
+                          child: goals.isEmpty
+                              // ---------- EMPTY STATE: centered ----------
+                              ? const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 24.0,
+                                    ),
+                                    child: Text(
+                                      'No goals yet.\nTap the + button to start your first quest ✨',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
                                         color: BudgetaColors.textMuted,
                                       ),
-                                ),
-                              )
-                            else
-                              for (int i = 0; i < goals.length; i++)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 14.0),
-                                  child: GoalCard(
-                                    goal: goals[i],
-                                    isFirst: i == 0,
-                                    onTap: () => _openGoalDetails(goals[i]),
+                                    ),
+                                  ),
+                                )
+                              // ---------- LIST OF GOALS ----------
+                              : SingleChildScrollView(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    20,
+                                    16,
+                                    20,
+                                    80,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      for (int i = 0; i < goals.length; i++)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 14.0,
+                                          ),
+                                          child: GoalCard(
+                                            goal: goals[i],
+                                            isFirst: i == 0,
+                                            onTap: () =>
+                                                _openGoalDetails(goals[i]),
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
-                          ],
                         ),
-                      ),
-
-                      // FAB inside scroll area (bottom-right)
-                      Positioned(
-                        right: 24,
-                        bottom: 16,
-                        child: _AddGoalFab(onTap: _openCreateGoalSheet),
-                      ),
-                    ],
+                      ],
+                    ),
                   );
                 },
               ),
@@ -149,7 +186,6 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
           ],
         ),
       ),
-      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 2),
     );
   }
 
@@ -287,36 +323,14 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: GoalDetailsSheet(
-            goalId: goal.id,
-            onEdit: () {
-              Navigator.of(context).pop(); // close details
-              _openEditGoal(goal);
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _openEditGoal(Goal goal) async {
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: GoalEditSheet(goal: goal),
+          child: GoalDetailsSheet(goalId: goal.id),
         );
       },
     );
   }
 }
 
-/// Small gradient FAB matching other screens (+)
+/// FAB – same circle as Expense Tracking main plus
 class _AddGoalFab extends StatelessWidget {
   final VoidCallback onTap;
   const _AddGoalFab({required this.onTap});
@@ -326,24 +340,24 @@ class _AddGoalFab extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 64,
-        height: 64,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(32),
-          gradient: const LinearGradient(
-            colors: [Color(0xFFF9617D), Color(0xFFB3125D)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+        width: 58,
+        height: 58,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Color(0xFFFF4F8B), Color(0xFF9A0E3A)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.18),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
+              color: Colors.black26,
+              blurRadius: 12,
+              offset: Offset(0, 6),
             ),
           ],
         ),
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
     );
   }

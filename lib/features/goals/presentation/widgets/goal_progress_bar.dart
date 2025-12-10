@@ -12,16 +12,30 @@ class GoalProgressBar extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(999),
-      child: SizedBox(
-        height: 6,
+      child: Container(
+        height: 8,
+        decoration: const BoxDecoration(
+          // light pink track (same feel as design)
+          color: Color(0xFFFFF1F5),
+        ),
         child: Stack(
           children: [
-            // Soft pink track – matches Expense screen
-            Container(color: BudgetaColors.accentLight.withValues(alpha: 0.35)),
-            // Primary accent bar
             FractionallySizedBox(
               widthFactor: clamped,
-              child: Container(color: BudgetaColors.primary),
+              alignment: Alignment.centerLeft,
+              child: Container(
+                decoration: const BoxDecoration(
+                  // gradient bar from deep to light pink
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFFB3125D), // deep
+                      Color(0xFFFF8BA7), // light
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                ),
+              ),
             ),
           ],
         ),

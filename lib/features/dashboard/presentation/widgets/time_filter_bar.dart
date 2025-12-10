@@ -1,3 +1,4 @@
+// lib/features/dashboard/presentation/widgets/time_filter_bar.dart
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
@@ -5,6 +6,8 @@ import '../../data/dashboard_repository.dart' as dash_repo;
 
 typedef DashboardFilterCallback = void Function(dash_repo.DashboardFilter);
 
+/// Pills for time range (Last 30 days / This month / All time)
+/// Advanced filters (type/category) are handled separately.
 class TimeFilterBar extends StatefulWidget {
   final DashboardFilterCallback onFilterChanged;
 
@@ -83,13 +86,11 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
                           end: Alignment.bottomCenter,
                         )
                       : null,
-                  // 🤍 UI change: unselected background is now clean white
                   color: !isSelected ? Colors.white : null,
                   border: Border.all(
                     width: 1.2,
                     color: isSelected
                         ? BudgetaColors.primary
-                        // 🪞 UI change: unselected border uses cardBorder
                         : BudgetaColors.cardBorder,
                   ),
                 ),
@@ -99,7 +100,6 @@ class _TimeFilterBarState extends State<TimeFilterBar> {
                     Icon(
                       filters[i]['icon'] as IconData,
                       size: 16,
-                      // 🎯 UI change: dark neutral icon when unselected
                       color: isSelected ? Colors.white : BudgetaColors.deep,
                     ),
                     const SizedBox(width: 6),
