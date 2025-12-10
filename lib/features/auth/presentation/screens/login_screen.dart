@@ -1,3 +1,4 @@
+// lib/features/auth/presentation/screens/login_screen.dart
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
@@ -48,8 +49,9 @@ class _LogInScreenState extends State<LogInScreen> {
           _passwordController.text.trim(),
         );
         if (user != null) {
+          // ⬇️ Go to DASHBOARD after login
           // ignore: use_build_context_synchronously
-          Navigator.pushReplacementNamed(context, AppRoutes.home);
+          Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
         }
       } catch (e) {
         _showSnackBar("Login failed: ${e.toString()}");
@@ -57,22 +59,19 @@ class _LogInScreenState extends State<LogInScreen> {
     }
   }
 
-
-
-  InputDecoration _inputDecoration(String label,
-      {IconData? icon, String? hint}) {
+  InputDecoration _inputDecoration(
+    String label, {
+    IconData? icon,
+    String? hint,
+  }) {
     return InputDecoration(
       labelText: label,
       hintText: hint,
       prefixIcon: icon != null ? Icon(icon, size: 20) : null,
-      labelStyle: const TextStyle(
-        fontSize: 13,
-        color: BudgetaColors.textMuted,
-      ),
+      labelStyle: const TextStyle(fontSize: 13, color: BudgetaColors.textMuted),
       filled: true,
       fillColor: BudgetaColors.accentLight.withValues(alpha: 0.06),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
         borderSide: BorderSide(
@@ -87,10 +86,7 @@ class _LogInScreenState extends State<LogInScreen> {
       ),
       focusedBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(18)),
-        borderSide: BorderSide(
-          color: BudgetaColors.primary,
-          width: 1.6,
-        ),
+        borderSide: BorderSide(color: BudgetaColors.primary, width: 1.6),
       ),
     );
   }
@@ -110,7 +106,9 @@ class _LogInScreenState extends State<LogInScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(32),
+                ),
               ),
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 26),
               child: const Row(
@@ -130,10 +128,7 @@ class _LogInScreenState extends State<LogInScreen> {
                         SizedBox(height: 4),
                         Text(
                           'Log in and keep your glow-up going.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white70,
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
                         ),
                       ],
                     ),
@@ -145,8 +140,10 @@ class _LogInScreenState extends State<LogInScreen> {
             // Body card
             Expanded(
               child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 18,
+                ),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 420),
@@ -156,8 +153,9 @@ class _LogInScreenState extends State<LogInScreen> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: BudgetaColors.accentLight
-                              .withValues(alpha: 0.9),
+                          color: BudgetaColors.accentLight.withValues(
+                            alpha: 0.9,
+                          ),
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -201,26 +199,27 @@ class _LogInScreenState extends State<LogInScreen> {
                                 fontSize: 15,
                                 letterSpacing: 3,
                               ),
-                              decoration: _inputDecoration(
-                                'Password',
-                                icon: Icons.lock,
-                                hint: '••••••••',
-                              ).copyWith(
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                    size: 18,
-                                    color: BudgetaColors.textMuted,
+                              decoration:
+                                  _inputDecoration(
+                                    'Password',
+                                    icon: Icons.lock,
+                                    hint: '••••••••',
+                                  ).copyWith(
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscurePassword
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
+                                        size: 18,
+                                        color: BudgetaColors.textMuted,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _obscurePassword = !_obscurePassword;
+                                        });
+                                      },
+                                    ),
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
-                                ),
-                              ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter your password';
@@ -256,7 +255,6 @@ class _LogInScreenState extends State<LogInScreen> {
                               label: 'Log in',
                               onPressed: _submitLogin,
                             ),
-                            const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [

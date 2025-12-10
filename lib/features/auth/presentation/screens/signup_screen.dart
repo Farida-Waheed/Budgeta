@@ -1,3 +1,4 @@
+// lib/features/auth/presentation/screens/signup_screen.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -36,15 +37,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(color: Colors.white),
-        ),
+        content: Text(message, style: const TextStyle(color: Colors.white)),
         backgroundColor: BudgetaColors.primary,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         duration: const Duration(seconds: 4),
       ),
@@ -63,13 +59,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               .collection('users')
               .doc(user.uid)
               .set({
-            'name': _nameController.text.trim(),
-            'email': _emailController.text.trim(),
-            'createdAt': FieldValue.serverTimestamp(),
-            'updatedAt': FieldValue.serverTimestamp(),
-          });
+                'name': _nameController.text.trim(),
+                'email': _emailController.text.trim(),
+                'createdAt': FieldValue.serverTimestamp(),
+                'updatedAt': FieldValue.serverTimestamp(),
+              });
 
-          // keep your route
+          // ✅ After signup → Dashboard
           // ignore: use_build_context_synchronously
           Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
         }
@@ -79,20 +75,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-
-
   InputDecoration _inputDecoration(String label, {IconData? icon}) {
     return InputDecoration(
       labelText: label,
       prefixIcon: icon != null ? Icon(icon, size: 20) : null,
-      labelStyle: const TextStyle(
-        fontSize: 13,
-        color: BudgetaColors.textMuted,
-      ),
+      labelStyle: const TextStyle(fontSize: 13, color: BudgetaColors.textMuted),
       filled: true,
       fillColor: BudgetaColors.accentLight.withValues(alpha: 0.06),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
         borderSide: BorderSide(
@@ -107,10 +97,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
       focusedBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(18)),
-        borderSide: BorderSide(
-          color: BudgetaColors.primary,
-          width: 1.6,
-        ),
+        borderSide: BorderSide(color: BudgetaColors.primary, width: 1.6),
       ),
     );
   }
@@ -122,7 +109,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // ===== Gradient header (Budgeta style) =====
+            // Gradient header
             Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -157,10 +144,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         SizedBox(height: 4),
                         Text(
                           'Sign up and start glowing up your money.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white70,
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
                         ),
                       ],
                     ),
@@ -169,11 +153,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
 
-            // ===== Card + form =====
+            // Card + form
             Expanded(
               child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 18,
+                ),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 420),
@@ -183,8 +169,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: BudgetaColors.accentLight
-                              .withValues(alpha: 0.9),
+                          color: BudgetaColors.accentLight.withValues(
+                            alpha: 0.9,
+                          ),
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -227,8 +214,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                               validator: (value) =>
                                   value == null || value.isEmpty
-                                      ? 'Enter your name'
-                                      : null,
+                                  ? 'Enter your name'
+                                  : null,
                             ),
                             const SizedBox(height: 12),
 
@@ -244,8 +231,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 if (value == null || value.isEmpty) {
                                   return 'Enter your email';
                                 }
-                                if (!RegExp(r'\S+@\S+\.\S+')
-                                    .hasMatch(value)) {
+                                if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
                                   return 'Invalid email';
                                 }
                                 return null;
@@ -257,29 +243,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             TextFormField(
                               controller: _passwordController,
                               obscureText: _obscurePassword,
-                              decoration: _inputDecoration(
-                                'Password',
-                                icon: Icons.lock,
-                              ).copyWith(
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                    size: 18,
-                                    color: BudgetaColors.textMuted,
+                              decoration:
+                                  _inputDecoration(
+                                    'Password',
+                                    icon: Icons.lock,
+                                  ).copyWith(
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscurePassword
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
+                                        size: 18,
+                                        color: BudgetaColors.textMuted,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _obscurePassword = !_obscurePassword;
+                                        });
+                                      },
+                                    ),
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
-                                ),
-                              ),
                               validator: (value) =>
                                   value == null || value.length < 6
-                                      ? 'Password must be at least 6 characters'
-                                      : null,
+                                  ? 'Password must be at least 6 characters'
+                                  : null,
                             ),
                             const SizedBox(height: 12),
 
@@ -287,26 +274,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             TextFormField(
                               controller: _confirmPasswordController,
                               obscureText: _obscureConfirmPassword,
-                              decoration: _inputDecoration(
-                                'Confirm password',
-                                icon: Icons.lock_outline,
-                              ).copyWith(
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscureConfirmPassword
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                    size: 18,
-                                    color: BudgetaColors.textMuted,
+                              decoration:
+                                  _inputDecoration(
+                                    'Confirm password',
+                                    icon: Icons.lock_outline,
+                                  ).copyWith(
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _obscureConfirmPassword
+                                            ? Icons.visibility_off_outlined
+                                            : Icons.visibility_outlined,
+                                        size: 18,
+                                        color: BudgetaColors.textMuted,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _obscureConfirmPassword =
+                                              !_obscureConfirmPassword;
+                                        });
+                                      },
+                                    ),
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscureConfirmPassword =
-                                          !_obscureConfirmPassword;
-                                    });
-                                  },
-                                ),
-                              ),
                               validator: (value) {
                                 if (value != _passwordController.text) {
                                   return 'Passwords do not match';
@@ -329,13 +317,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 Expanded(
                                   child: Container(
                                     height: 1,
-                                    color: BudgetaColors.accentLight
-                                        .withValues(alpha: 0.7),
+                                    color: BudgetaColors.accentLight.withValues(
+                                      alpha: 0.7,
+                                    ),
                                   ),
                                 ),
                                 const Padding(
-                                  padding:
-                                      EdgeInsets.symmetric(horizontal: 8.0),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
                                   child: Text(
                                     'or',
                                     style: TextStyle(
@@ -347,8 +337,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 Expanded(
                                   child: Container(
                                     height: 1,
-                                    color: BudgetaColors.accentLight
-                                        .withValues(alpha: 0.7),
+                                    color: BudgetaColors.accentLight.withValues(
+                                      alpha: 0.7,
+                                    ),
                                   ),
                                 ),
                               ],

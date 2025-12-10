@@ -35,18 +35,16 @@ void main() async {
       providers: [
         // Expense & Income Tracking
         BlocProvider<TrackingCubit>(
-          create: (_) => TrackingCubit(
-            repository: trackingRepo,
-            userId: userId,
-          )..loadTransactions(),
+          create: (_) =>
+              TrackingCubit(repository: trackingRepo, userId: userId)
+                ..loadTransactions(),
         ),
 
         // Dashboard & Analytics
         BlocProvider<DashboardCubit>(
-          create: (_) => DashboardCubit(
-            repository: dashboardRepo,
-            userId: userId,
-          )..loadDashboard(),
+          create: (_) =>
+              DashboardCubit(repository: dashboardRepo, userId: userId)
+                ..loadDashboard(),
         ),
       ],
       child: const BudgetaApp(),

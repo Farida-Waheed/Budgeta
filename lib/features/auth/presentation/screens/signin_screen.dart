@@ -1,3 +1,4 @@
+// lib/features/auth/presentation/screens/signin_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
@@ -5,7 +6,7 @@ import 'package:flutter/services.dart';
 import '../../../../app/theme.dart';
 import '../../../../app/router.dart';
 import '../../data/phone_auth_service.dart';
-import '../../../../core/constants/country_codes.dart'; // adapt path to where you keep CountryCodes
+import '../../../../core/constants/country_codes.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -46,8 +47,9 @@ class _SignInScreenState extends State<SignInScreen> {
 
   Future<void> _startPhoneVerification() async {
     final rawInput = _phoneController.text.trim();
-    final sanitized =
-        rawInput.startsWith('0') ? rawInput.substring(1) : rawInput;
+    final sanitized = rawInput.startsWith('0')
+        ? rawInput.substring(1)
+        : rawInput;
     final fullPhone = '$countryCode$sanitized';
     final name = _nameController.text.trim();
 
@@ -81,11 +83,12 @@ class _SignInScreenState extends State<SignInScreen> {
         },
         verificationCompleted: (AuthCredential credential) async {
           try {
-            final UserCredential userCredential =
-                await FirebaseAuth.instance.signInWithCredential(credential);
+            final UserCredential userCredential = await FirebaseAuth.instance
+                .signInWithCredential(credential);
             if (userCredential.user != null) {
+              // ✅ After auto-verification → DASHBOARD
               // ignore: use_build_context_synchronously
-              Navigator.pushReplacementNamed(context, AppRoutes.home);
+              Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
             }
           } catch (e) {
             _showSnackBar("Verification failed: $e");
@@ -112,13 +115,10 @@ class _SignInScreenState extends State<SignInScreen> {
   InputDecoration _phoneDecoration() {
     return InputDecoration(
       hintText: 'Mobile number',
-      hintStyle: const TextStyle(
-        color: BudgetaColors.textMuted,
-      ),
+      hintStyle: const TextStyle(color: BudgetaColors.textMuted),
       filled: true,
       fillColor: Colors.white,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide(
@@ -127,10 +127,7 @@ class _SignInScreenState extends State<SignInScreen> {
       ),
       focusedBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(16)),
-        borderSide: BorderSide(
-          color: BudgetaColors.primary,
-          width: 1.6,
-        ),
+        borderSide: BorderSide(color: BudgetaColors.primary, width: 1.6),
       ),
     );
   }
@@ -139,14 +136,10 @@ class _SignInScreenState extends State<SignInScreen> {
     return InputDecoration(
       labelText: 'Full name',
       prefixIcon: const Icon(Icons.person),
-      labelStyle: const TextStyle(
-        fontSize: 13,
-        color: BudgetaColors.textMuted,
-      ),
+      labelStyle: const TextStyle(fontSize: 13, color: BudgetaColors.textMuted),
       filled: true,
       fillColor: BudgetaColors.accentLight.withValues(alpha: 0.06),
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
         borderSide: BorderSide(
@@ -161,10 +154,7 @@ class _SignInScreenState extends State<SignInScreen> {
       ),
       focusedBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(18)),
-        borderSide: BorderSide(
-          color: BudgetaColors.primary,
-          width: 1.6,
-        ),
+        borderSide: BorderSide(color: BudgetaColors.primary, width: 1.6),
       ),
     );
   }
@@ -176,7 +166,7 @@ class _SignInScreenState extends State<SignInScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Gradient header instead of photo
+            // Gradient header
             Container(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
               decoration: const BoxDecoration(
@@ -203,10 +193,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   SizedBox(height: 6),
                   Text(
                     'Step into a world of better money choices ✨',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white70,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.white70),
                   ),
                 ],
               ),
@@ -214,8 +201,10 @@ class _SignInScreenState extends State<SignInScreen> {
 
             Expanded(
               child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 18,
+                ),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 420),
@@ -232,8 +221,9 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                         ],
                         border: Border.all(
-                          color: BudgetaColors.accentLight
-                              .withValues(alpha: 0.9),
+                          color: BudgetaColors.accentLight.withValues(
+                            alpha: 0.9,
+                          ),
                         ),
                       ),
                       child: Column(
@@ -248,24 +238,26 @@ class _SignInScreenState extends State<SignInScreen> {
                           Row(
                             children: [
                               Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                ),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
                                   color: Colors.white,
                                   border: Border.all(
-                                    color: BudgetaColors.cardBorder
-                                        .withValues(alpha: 0.9),
+                                    color: BudgetaColors.cardBorder.withValues(
+                                      alpha: 0.9,
+                                    ),
                                   ),
                                 ),
                                 child: DropdownButton<String>(
                                   value: countryCode,
                                   underline: const SizedBox(),
                                   icon: const Icon(
-                                      Icons.keyboard_arrow_down_rounded),
+                                    Icons.keyboard_arrow_down_rounded,
+                                  ),
                                   items: CountryCodes.codes.map((c) {
-                                    final flag =
-                                        getFlagEmoji(c['iso'] ?? '');
+                                    final flag = getFlagEmoji(c['iso'] ?? '');
                                     return DropdownMenuItem<String>(
                                       value: c['code'],
                                       child: Text('$flag ${c['code']}'),
@@ -324,8 +316,9 @@ class _SignInScreenState extends State<SignInScreen> {
                             height: 52,
                             width: double.infinity,
                             child: ElevatedButton(
-                              onPressed:
-                                  _isLoading ? null : _startPhoneVerification,
+                              onPressed: _isLoading
+                                  ? null
+                                  : _startPhoneVerification,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: BudgetaColors.primary,
                                 foregroundColor: Colors.white,

@@ -15,10 +15,8 @@ class BudgetaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RepositoryProvider<TrackingRepository>(
-      // thanks to the singleton pattern, this is the same instance
-      // used everywhere in the app
+      // singleton in-memory repo
       create: (_) => InMemoryTrackingRepository(),
-
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Budgeta',
@@ -27,10 +25,9 @@ class BudgetaApp extends StatelessWidget {
         darkTheme: BudgetaTheme.darkTheme,
         themeMode: ThemeMode.light,
 
-        // use the new router
         onGenerateRoute: AppRouter.onGenerateRoute,
 
-        // first screen = hero / welcome (DashboardOverviewScreen)
+        // ✅ First screen = DashboardOverviewScreen
         initialRoute: AppRoutes.home,
       ),
     );
