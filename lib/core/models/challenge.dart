@@ -23,4 +23,28 @@ class Challenge {
   });
 
   double get progress => (daysCompleted / durationDays).clamp(0, 1);
+
+  Challenge copyWith({
+    String? id,
+    String? name,
+    String? description,
+    int? durationDays,
+    double? targetAmount,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool? isJoined,
+    int? daysCompleted,
+  }) {
+    return Challenge(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      durationDays: durationDays ?? this.durationDays,
+      targetAmount: targetAmount ?? this.targetAmount,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      isJoined: isJoined ?? this.isJoined,
+      daysCompleted: daysCompleted ?? this.daysCompleted,
+    );
+  }
 }

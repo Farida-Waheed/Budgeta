@@ -19,7 +19,6 @@ import '../../data/goals_repository.dart';
 // local widgets/screens
 import '../widgets/goal_card.dart';
 import 'goal_detail_screen.dart';
-import 'goal_edit_screen.dart';
 
 class GoalsHomeScreen extends StatelessWidget {
   const GoalsHomeScreen({super.key});
@@ -62,7 +61,7 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
       backgroundColor: BudgetaColors.backgroundLight,
       bottomNavigationBar: const BudgetaBottomNav(currentIndex: 2),
 
-      // FAB: same size & placement as Expense Tracking main +
+      // FAB same size & position as Expense Tracking main +
       floatingActionButton: _AddGoalFab(onTap: _openCreateGoalSheet),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
@@ -95,7 +94,7 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
                   final loaded = state as GoalsLoaded;
                   final goals = loaded.goals;
 
-                  // Match Tracking: rounded container + top bar
+                  // Match Tracking layout: rounded container + top bar
                   return Container(
                     decoration: const BoxDecoration(
                       color: BudgetaColors.background,
@@ -107,7 +106,7 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Upper bar – same style as "All Transactions 💖"
+                        // Upper bar – same shape/height as "All Transactions 💖"
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
@@ -136,7 +135,7 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
                         // Content
                         Expanded(
                           child: goals.isEmpty
-                              // ---------- EMPTY STATE: centered ----------
+                              // Centered "No goals" message
                               ? const Center(
                                   child: Padding(
                                     padding: EdgeInsets.symmetric(
@@ -151,7 +150,6 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
                                     ),
                                   ),
                                 )
-                              // ---------- LIST OF GOALS ----------
                               : SingleChildScrollView(
                                   padding: const EdgeInsets.fromLTRB(
                                     20,
@@ -311,26 +309,32 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
     Navigator.of(context).pop();
   }
 
-  // ---------- Details & Edit ----------
+  // ---------- Details (flip card sheet) ----------
 
   Future<void> _openGoalDetails(Goal goal) async {
+    // reuse the same GoalsCubit instance inside the bottom sheet
+    final goalsCubit = context.read<GoalsCubit>();
+
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+        return BlocProvider.value(
+          value: goalsCubit,
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: GoalDetailsSheet(goalId: goal.id),
           ),
-          child: GoalDetailsSheet(goalId: goal.id),
         );
       },
     );
   }
 }
 
-/// FAB – same circle as Expense Tracking main plus
+/// FAB – same size & placement as Expense Tracking main plus
 class _AddGoalFab extends StatelessWidget {
   final VoidCallback onTap;
   const _AddGoalFab({required this.onTap});
