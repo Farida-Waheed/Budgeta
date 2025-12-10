@@ -48,10 +48,7 @@ class AlertsScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            const MagicGradientHeader(
-              title: 'Smart Alerts 🔔',
-              subtitle: 'Gentle nudges before things slip.',
-            ),
+            const _AlertsHeader(), // ⬅️ bigger header card
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
@@ -69,6 +66,59 @@ class AlertsScreen extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: const BudgetaBottomNav(currentIndex: 3),
+    );
+  }
+}
+
+/// Bigger gradient header for Alerts (matches other subsystems)
+class _AlertsHeader extends StatelessWidget {
+  const _AlertsHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 26, 12, 30),
+      constraints: const BoxConstraints(minHeight: 110),
+      child: const Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Smart Alerts 🔔',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22, // was 20
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: 6), // was 4
+                Text(
+                  'Gentle nudges before things slip.',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14, // was 13
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 8),
+          Icon(Icons.notifications_none_rounded, color: Colors.white, size: 24),
+        ],
+      ),
     );
   }
 }
