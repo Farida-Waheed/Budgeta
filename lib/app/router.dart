@@ -1,8 +1,6 @@
 // lib/app/router.dart
 import 'package:flutter/material.dart';
 
-import 'theme.dart';
-
 // HERO / WELCOME (Transform your money journey...)
 import '../features/dashboard/presentation/screens/dashboard_overview_screen.dart';
 
@@ -25,6 +23,12 @@ import '../features/gamification/presentation/screens/challenges_screen.dart';
 
 // SETTINGS
 import '../features/settings/presentation/screens/settings_screen.dart';
+
+// AUTH SCREENS
+import '../features/auth/presentation/screens/login_screen.dart';
+import '../features/auth/presentation/screens/signup_screen.dart';
+import '../features/auth/presentation/screens/forgot_password_screen.dart';
+import '../features/auth/presentation/screens/signin_screen.dart';
 
 // MODELS
 import '../core/models/transaction.dart';
@@ -54,6 +58,12 @@ class AppRoutes {
 
   /// Settings
   static const String settings = '/settings';
+
+  /// 🔐 AUTH
+  static const String login = '/auth/login';
+  static const String signup = '/auth/signup';
+  static const String forgotPassword = '/auth/forgot-password';
+  static const String phoneSignin = '/auth/phone-signin';
 }
 
 /// ----------------------
@@ -91,14 +101,6 @@ class AppRouter {
         );
 
       case AppRoutes.addTransaction:
-        // Can be called with:
-        // Navigator.pushNamed(context, AppRoutes.addTransaction);
-        // or with a preselected type:
-        // Navigator.pushNamed(
-        //   context,
-        //   AppRoutes.addTransaction,
-        //   arguments: TransactionType.income,
-        // );
         TransactionType? preselected;
         final args = settings.arguments;
         if (args is TransactionType) {
@@ -113,7 +115,6 @@ class AppRouter {
         );
 
       case AppRoutes.editTransaction:
-        // Expect: Navigator.pushNamed(context, AppRoutes.editTransaction, arguments: tx);
         final args = settings.arguments;
         if (args is! Transaction) {
           return _errorRoute('EditTransactionScreen needs a Transaction.');
@@ -157,11 +158,29 @@ class AppRouter {
         );
 
       // -------------------
-      //   SETTINGS
+      //   🔐 AUTH SCREENS
       // -------------------
-      case AppRoutes.settings:
+      case AppRoutes.login:
         return MaterialPageRoute(
-          builder: (_) => const SettingsScreen(),
+          builder: (_) => const LogInScreen(),
+          settings: settings,
+        );
+
+      case AppRoutes.signup:
+        return MaterialPageRoute(
+          builder: (_) => const SignUpScreen(),
+          settings: settings,
+        );
+
+      case AppRoutes.forgotPassword:
+        return MaterialPageRoute(
+          builder: (_) => const ForgotPasswordScreen(),
+          settings: settings,
+        );
+
+      case AppRoutes.phoneSignin:
+        return MaterialPageRoute(
+          builder: (_) => const SignInScreen(),
           settings: settings,
         );
 

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/theme.dart';
 import '../../../../app/router.dart';
 import '../../../../core/widgets/primary_button.dart';
-import '../../../../core/services/auth_service.dart';
+import '../../data/auth_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -36,10 +36,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(color: Colors.white)),
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white),
+        ),
         backgroundColor: BudgetaColors.primary,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         duration: const Duration(seconds: 4),
       ),
@@ -58,15 +63,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
               .collection('users')
               .doc(user.uid)
               .set({
-                'name': _nameController.text.trim(),
-                'email': _emailController.text.trim(),
-                'createdAt': FieldValue.serverTimestamp(),
-                'updatedAt': FieldValue.serverTimestamp(),
-              });
+            'name': _nameController.text.trim(),
+            'email': _emailController.text.trim(),
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
 
           // keep your route
           // ignore: use_build_context_synchronously
-          Navigator.pushReplacementNamed(context, AppRoutes.medicalHistory);
+          Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
         }
       } catch (e) {
         _showSnackBar("Signup failed: $e");
@@ -74,26 +79,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  Future<void> _handleGoogleSignUp() async {
-    try {
-      final user = await _authService.signInWithGoogle();
-      if (user != null) {
-        // ignore: use_build_context_synchronously
-        Navigator.pushReplacementNamed(context, AppRoutes.medicalHistory);
-      }
-    } catch (e) {
-      _showSnackBar("Google sign-in failed: $e");
-    }
-  }
+
 
   InputDecoration _inputDecoration(String label, {IconData? icon}) {
     return InputDecoration(
       labelText: label,
       prefixIcon: icon != null ? Icon(icon, size: 20) : null,
-      labelStyle: const TextStyle(fontSize: 13, color: BudgetaColors.textMuted),
+      labelStyle: const TextStyle(
+        fontSize: 13,
+        color: BudgetaColors.textMuted,
+      ),
       filled: true,
       fillColor: BudgetaColors.accentLight.withValues(alpha: 0.06),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(18),
         borderSide: BorderSide(
@@ -108,7 +107,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
       focusedBorder: const OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(18)),
-        borderSide: BorderSide(color: BudgetaColors.primary, width: 1.6),
+        borderSide: BorderSide(
+          color: BudgetaColors.primary,
+          width: 1.6,
+        ),
       ),
     );
   }
@@ -155,7 +157,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         SizedBox(height: 4),
                         Text(
                           'Sign up and start glowing up your money.',
-                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white70,
+                          ),
                         ),
                       ],
                     ),
@@ -167,10 +172,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
             // ===== Card + form =====
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 18,
-                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
                 child: Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 420),
@@ -180,9 +183,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: BudgetaColors.accentLight.withValues(
-                            alpha: 0.9,
-                          ),
+                          color: BudgetaColors.accentLight
+                              .withValues(alpha: 0.9),
                         ),
                         boxShadow: [
                           BoxShadow(
@@ -225,8 +227,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ),
                               validator: (value) =>
                                   value == null || value.isEmpty
-                                  ? 'Enter your name'
-                                  : null,
+                                      ? 'Enter your name'
+                                      : null,
                             ),
                             const SizedBox(height: 12),
 
@@ -242,7 +244,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 if (value == null || value.isEmpty) {
                                   return 'Enter your email';
                                 }
-                                if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
+                                if (!RegExp(r'\S+@\S+\.\S+')
+                                    .hasMatch(value)) {
                                   return 'Invalid email';
                                 }
                                 return null;
@@ -254,30 +257,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             TextFormField(
                               controller: _passwordController,
                               obscureText: _obscurePassword,
-                              decoration:
-                                  _inputDecoration(
-                                    'Password',
-                                    icon: Icons.lock,
-                                  ).copyWith(
-                                    suffixIcon: IconButton(
-                                      icon: Icon(
-                                        _obscurePassword
-                                            ? Icons.visibility_off_outlined
-                                            : Icons.visibility_outlined,
-                                        size: 18,
-                                        color: BudgetaColors.textMuted,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _obscurePassword = !_obscurePassword;
-                                        });
-                                      },
-                                    ),
+                              decoration: _inputDecoration(
+                                'Password',
+                                icon: Icons.lock,
+                              ).copyWith(
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    size: 18,
+                                    color: BudgetaColors.textMuted,
                                   ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
+                              ),
                               validator: (value) =>
                                   value == null || value.length < 6
-                                  ? 'Password must be at least 6 characters'
-                                  : null,
+                                      ? 'Password must be at least 6 characters'
+                                      : null,
                             ),
                             const SizedBox(height: 12),
 
@@ -285,27 +287,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             TextFormField(
                               controller: _confirmPasswordController,
                               obscureText: _obscureConfirmPassword,
-                              decoration:
-                                  _inputDecoration(
-                                    'Confirm password',
-                                    icon: Icons.lock_outline,
-                                  ).copyWith(
-                                    suffixIcon: IconButton(
-                                      icon: Icon(
-                                        _obscureConfirmPassword
-                                            ? Icons.visibility_off_outlined
-                                            : Icons.visibility_outlined,
-                                        size: 18,
-                                        color: BudgetaColors.textMuted,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _obscureConfirmPassword =
-                                              !_obscureConfirmPassword;
-                                        });
-                                      },
-                                    ),
+                              decoration: _inputDecoration(
+                                'Confirm password',
+                                icon: Icons.lock_outline,
+                              ).copyWith(
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscureConfirmPassword
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    size: 18,
+                                    color: BudgetaColors.textMuted,
                                   ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscureConfirmPassword =
+                                          !_obscureConfirmPassword;
+                                    });
+                                  },
+                                ),
+                              ),
                               validator: (value) {
                                 if (value != _passwordController.text) {
                                   return 'Passwords do not match';
@@ -328,15 +329,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 Expanded(
                                   child: Container(
                                     height: 1,
-                                    color: BudgetaColors.accentLight.withValues(
-                                      alpha: 0.7,
-                                    ),
+                                    color: BudgetaColors.accentLight
+                                        .withValues(alpha: 0.7),
                                   ),
                                 ),
                                 const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 8.0,
-                                  ),
+                                  padding:
+                                      EdgeInsets.symmetric(horizontal: 8.0),
                                   child: Text(
                                     'or',
                                     style: TextStyle(
@@ -348,45 +347,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 Expanded(
                                   child: Container(
                                     height: 1,
-                                    color: BudgetaColors.accentLight.withValues(
-                                      alpha: 0.7,
-                                    ),
+                                    color: BudgetaColors.accentLight
+                                        .withValues(alpha: 0.7),
                                   ),
                                 ),
                               ],
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            OutlinedButton.icon(
-                              onPressed: _handleGoogleSignUp,
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 10,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(18),
-                                ),
-                                side: BorderSide(
-                                  color: BudgetaColors.cardBorder.withValues(
-                                    alpha: 0.9,
-                                  ),
-                                ),
-                              ),
-                              icon: const Icon(
-                                Icons.g_mobiledata,
-                                size: 26,
-                                color: BudgetaColors.deep,
-                              ),
-                              label: const Text(
-                                'Sign up with Google',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: BudgetaColors.deep,
-                                ),
-                              ),
                             ),
 
                             const SizedBox(height: 16),
