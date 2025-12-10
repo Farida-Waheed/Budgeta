@@ -27,24 +27,11 @@ class GoalsCubit extends Cubit<GoalsState> {
   Future<void> requestProjection(String goalId) async {
     if (state is! GoalsLoaded) return;
     final current = (state as GoalsLoaded).goals;
+
     try {
       final proj = await repository.getGoalProjection(goalId);
       final updated = current
-          .map(
-            (g) => g.id == goalId
-                ? Goal(
-                    id: g.id,
-                    userId: g.userId,
-                    name: g.name,
-                    targetAmount: g.targetAmount,
-                    currentAmount: g.currentAmount,
-                    createdAt: g.createdAt,
-                    targetDate: g.targetDate,
-                    projection: proj,
-                    isPrimary: g.isPrimary,
-                  )
-                : g,
-          )
+          .map((g) => g.id == goalId ? g.copyWith(projection: proj) : g)
           .toList();
       emit(GoalsLoaded(updated));
     } catch (e) {
@@ -79,6 +66,44 @@ class GoalsCubit extends Cubit<GoalsState> {
       } else {
         await loadGoals();
       }
+    } catch (e) {
+      emit(GoalsError(e.toString()));
+    }
+  }
+
+  /// UC: Edit existing goal
+  Future<void> updateGoal(Goal goal) async {
+    if (state is! GoalsLoaded) return;
+
+    final current = (state as GoalsLoaded).goals;
+    try {
+      final updatedGoal = await repository.updateGoal(goal);
+      final updatedList = current
+          .map((g) => g.id == updatedGoal.id ? updatedGoal : g)
+          .toList();
+      emit(GoalsLoaded(updatedList));
+    } catch (e) {
+      emit(GoalsError(e.toString()));
+    }
+  }
+
+  /// UC: Add contribution to goal
+  Future<void> addContribution({
+    required String goalId,
+    required double amount,
+  }) async {
+    if (state is! GoalsLoaded) return;
+
+    final current = (state as GoalsLoaded).goals;
+    try {
+      final updatedGoal = await repository.addContribution(
+        goalId: goalId,
+        amount: amount,
+      );
+      final updatedList = current
+          .map((g) => g.id == updatedGoal.id ? updatedGoal : g)
+          .toList();
+      emit(GoalsLoaded(updatedList));
     } catch (e) {
       emit(GoalsError(e.toString()));
     }

@@ -1,4 +1,3 @@
-// lib/features/goals/presentation/screens/goals_home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -6,8 +5,6 @@ import '../../../../app/theme.dart';
 
 // shared core widgets
 import '../../../../core/widgets/gradient_header.dart';
-import '../../../../core/widgets/card.dart';
-import '../../../../core/widgets/section_title.dart';
 import '../../../../core/widgets/modal_sheet.dart';
 import '../../../../core/widgets/text_field.dart';
 import '../../../../core/widgets/primary_button.dart';
@@ -17,6 +14,11 @@ import '../../../../shared/bottom_nav.dart';
 import '../../../../core/models/goal.dart';
 import '../../state/goals_cubit.dart';
 import '../../data/goals_repository.dart';
+
+// local widgets/screens
+import '../../../goals/presentation/widgets/goal_card.dart';
+import '../../../goals/presentation/screens/goal_detail_screen.dart';
+import 'goal_edit_screen.dart';
 
 class GoalsHomeScreen extends StatelessWidget {
   const GoalsHomeScreen({super.key});
@@ -33,7 +35,7 @@ class GoalsHomeScreen extends StatelessWidget {
 }
 
 class _GoalsHomeView extends StatefulWidget {
-  const _GoalsHomeView(); // key not needed
+  const _GoalsHomeView();
 
   @override
   State<_GoalsHomeView> createState() => _GoalsHomeViewState();
@@ -93,8 +95,18 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const MagicSectionTitle('Your Treasure Quests ✨'),
-                            const SizedBox(height: 16),
+                            // Header under gradient – match "All Transactions 💖"
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12.0),
+                              child: Text(
+                                'Your Treasure Quests ✨',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: BudgetaColors.deep,
+                                    ),
+                              ),
+                            ),
                             if (goals.isEmpty)
                               Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -113,9 +125,10 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
                               for (int i = 0; i < goals.length; i++)
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 14.0),
-                                  child: _GoalCard(
+                                  child: GoalCard(
                                     goal: goals[i],
                                     isFirst: i == 0,
+                                    onTap: () => _openGoalDetails(goals[i]),
                                   ),
                                 ),
                           ],
@@ -139,6 +152,8 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
       bottomNavigationBar: const BudgetaBottomNav(currentIndex: 2),
     );
   }
+
+  // ---------- Create Goal ----------
 
   Future<void> _openCreateGoalSheet() async {
     _nameCtrl.clear();
@@ -259,6 +274,46 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
 
     Navigator.of(context).pop();
   }
+
+  // ---------- Details & Edit ----------
+
+  Future<void> _openGoalDetails(Goal goal) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: GoalDetailsSheet(
+            goalId: goal.id,
+            onEdit: () {
+              Navigator.of(context).pop(); // close details
+              _openEditGoal(goal);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _openEditGoal(Goal goal) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: GoalEditSheet(goal: goal),
+        );
+      },
+    );
+  }
 }
 
 /// Small gradient FAB matching other screens (+)
@@ -289,172 +344,6 @@ class _AddGoalFab extends StatelessWidget {
           ],
         ),
         child: const Icon(Icons.add, color: Colors.white, size: 30),
-      ),
-    );
-  }
-}
-
-/// Goal card bound to the real `Goal` model
-class _GoalCard extends StatelessWidget {
-  final Goal goal;
-  final bool isFirst;
-
-  const _GoalCard({required this.goal, required this.isFirst});
-
-  String _deadlineText() {
-    if (goal.targetDate == null) return '—';
-    final d = goal.targetDate!;
-    return '${d.day.toString().padLeft(2, '0')}/'
-        '${d.month.toString().padLeft(2, '0')}/'
-        '${d.year}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final progress = goal.progress.isNaN ? 0.0 : goal.progress;
-    final progressPercent = (progress * 100).round();
-    final remaining = (goal.targetAmount - goal.currentAmount).clamp(
-      0,
-      goal.targetAmount,
-    );
-
-    return MagicCard(
-      borderRadius: 22,
-      padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title row
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: BudgetaColors.accentLight.withValues(alpha: 0.18),
-                ),
-                child: const Icon(
-                  Icons.radio_button_unchecked,
-                  size: 18,
-                  color: BudgetaColors.primary,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  goal.name,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: BudgetaColors.deep,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Text(
-                '\$${goal.currentAmount.toStringAsFixed(2)}'
-                ' of \$${goal.targetAmount.toStringAsFixed(2)}',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: BudgetaColors.textMuted),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // Progress bar & % label
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: SizedBox(
-              height: 6,
-              child: Stack(
-                children: [
-                  Container(color: const Color(0xFFFFEEF3)),
-                  FractionallySizedBox(
-                    widthFactor: progress,
-                    child: Container(color: BudgetaColors.deep),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              '$progressPercent% complete',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: BudgetaColors.textMuted,
-                fontSize: 11,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Remaining + Deadline row
-          Row(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Remaining',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: BudgetaColors.textMuted,
-                      fontSize: 11,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '\$${remaining.toStringAsFixed(2)}',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: BudgetaColors.deep,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'Deadline',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: BudgetaColors.textMuted,
-                      fontSize: 11,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _deadlineText(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: BudgetaColors.deep,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          if (isFirst || progress >= 0.9)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: BudgetaColors.accentLight.withValues(alpha: 0.28),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                '✨ Almost there! Keep sparkling! ✨',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: BudgetaColors.deep,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-        ],
       ),
     );
   }

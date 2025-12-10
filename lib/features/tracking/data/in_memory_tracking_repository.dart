@@ -4,7 +4,7 @@ import 'dart:math';
 
 import '../../../core/models/transaction.dart';
 import '../../../core/models/recurring_rule.dart';
-import '../../../core/models/category.dart';
+import '../../../core/models/category_rule.dart';
 import '../../../core/models/tracking_summary.dart';
 import 'tracking_repository.dart';
 
