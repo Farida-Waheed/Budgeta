@@ -39,7 +39,7 @@ class RecurringTransactionsScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
+                      padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
                       child: _buildInfoCard(),
                     ),
                     Expanded(
@@ -70,7 +70,7 @@ class RecurringTransactionsScreen extends StatelessWidget {
                               );
                             }
                             return ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                              padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
                               itemCount: rules.length,
                               itemBuilder: (context, index) {
                                 final r = rules[index];
@@ -100,39 +100,43 @@ class RecurringTransactionsScreen extends StatelessWidget {
 
   static Widget _buildInfoCard() {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFE4ED), Color(0xFFFDF4FF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(18),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(
+          color: BudgetaColors.accentLight.withValues(alpha: 0.6),
+        ),
       ),
       child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: Colors.white,
+            backgroundColor: BudgetaColors.accentLight,
             child: Icon(
               Icons.notifications_active_outlined,
               color: BudgetaColors.deep,
             ),
           ),
-          SizedBox(width: 10),
+          SizedBox(width: 12),
           Expanded(
             child: Text(
               'Recurring rules are your fixed money habits: rent, salary, '
-              'subscriptions… Your AI Coach and alerts will use these to '
-              'remind you before payments are due.',
-              style: TextStyle(fontSize: 12, color: BudgetaColors.deep),
+              'subscriptions… Your AI Coach and alerts use these to nudge you '
+              'before payments are due. ✨',
+              style: TextStyle(
+                fontSize: 12,
+                color: BudgetaColors.deep,
+                height: 1.4,
+              ),
             ),
           ),
         ],
@@ -170,7 +174,7 @@ class RecurringTransactionsScreen extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
+                  colors: [BudgetaColors.primary, BudgetaColors.deep],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -459,7 +463,7 @@ class RecurringTransactionsScreen extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Header (matches TransactionsListScreen layout, no back arrow, keeps icon)
+// Header (match Challenges header colors & radius)
 // ---------------------------------------------------------------------------
 
 class _RecurringHeader extends StatelessWidget {
@@ -470,17 +474,13 @@ class _RecurringHeader extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
+          colors: [BudgetaColors.primary, BudgetaColors.deep],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
-      // ⬇️ made header card taller & text slightly bigger
-      padding: const EdgeInsets.fromLTRB(20, 26, 20, 30),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       constraints: const BoxConstraints(minHeight: 110),
       child: const Row(
         children: [
@@ -492,17 +492,14 @@ class _RecurringHeader extends StatelessWidget {
                   'Recurring & Schedules',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 22, // was 20
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 6), // was 4
+                SizedBox(height: 4),
                 Text(
                   'Automate your financial habits ✨',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14, // was 13
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
             ),
@@ -516,7 +513,7 @@ class _RecurringHeader extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Add FAB (custom + button on the right)
+// Add FAB (same gradient vibe as Challenges)
 // ---------------------------------------------------------------------------
 
 class _AddRecurringFab extends StatelessWidget {
@@ -531,18 +528,18 @@ class _AddRecurringFab extends StatelessWidget {
       child: Container(
         width: 58,
         height: 58,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [Color(0xFFFF4F8B), Color(0xFF9A0E3A)],
+          gradient: const LinearGradient(
+            colors: [BudgetaColors.primary, BudgetaColors.deep],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black26,
+              color: Colors.black.withValues(alpha: 0.20),
               blurRadius: 12,
-              offset: Offset(0, 6),
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -753,7 +750,7 @@ class _RecurringRuleTile extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Shared gradient primary button
+// Shared gradient primary button (match app pink gradient)
 // ---------------------------------------------------------------------------
 
 class _GradientPrimaryButton extends StatelessWidget {
@@ -769,7 +766,7 @@ class _GradientPrimaryButton extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
+            colors: [BudgetaColors.primary, BudgetaColors.deep],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),

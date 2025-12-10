@@ -1,4 +1,5 @@
 // lib/features/coach/presentation/screens/coach_home_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,18 +7,14 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../app/theme.dart';
 
-// shared widgets
-import '../../../../core/widgets/gradient_header.dart';
 import '../../../../core/widgets/card.dart';
 import '../../../../core/widgets/section_title.dart';
 import '../../../../shared/bottom_nav.dart';
 import '../../../../core/models/alert.dart';
 
-// coach state + repo
 import '../../state/coach_cubit.dart';
 import '../../data/fake_coach_repository.dart';
 
-// other coach screens
 import 'alerts_screen.dart';
 import 'coach_feed_screen.dart';
 import 'coach_settings_screen.dart';
@@ -27,12 +24,10 @@ class CoachHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Provide CoachCubit here so this tab is INTERACTIVE
     return BlocProvider(
-      create: (_) => CoachCubit(
-        repository: FakeCoachRepository(),
-        userId: 'demo-user', // later you can pass real user id
-      )..loadCoachHome(),
+      create: (_) =>
+          CoachCubit(repository: FakeCoachRepository(), userId: 'demo-user')
+            ..loadCoachHome(),
       child: const _CoachHomeView(),
     );
   }
@@ -45,17 +40,18 @@ class _CoachHomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
+      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 3),
+
       body: SafeArea(
         child: Column(
           children: [
-            // 🔝 bigger top section, same style as other subsystems
             _CoachHeader(
-              title: 'Your AI Coach ✨',
-              subtitle: 'Personalized tips just for you!',
-              trailingIcon: Icons.notifications_none_rounded,
-              onTrailingTap: () {
+              title: 'Your AI Coach 💖',
+              subtitle: 'Daily magic crafted for you!',
+              onNotifications: () {
                 final cubit = context.read<CoachCubit>();
-                Navigator.of(context).push(
+                Navigator.push(
+                  context,
                   MaterialPageRoute(
                     builder: (_) => BlocProvider.value(
                       value: cubit,
@@ -66,23 +62,21 @@ class _CoachHomeView extends StatelessWidget {
               },
             ),
 
-            // content from CoachCubit
             Expanded(
               child: BlocBuilder<CoachCubit, CoachState>(
                 builder: (context, state) {
-                  if (state is CoachInitial || state is CoachLoading) {
+                  if (state is CoachLoading || state is CoachInitial) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
                   if (state is CoachError) {
                     return Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(24.0),
+                        padding: const EdgeInsets.all(20),
                         child: Text(
-                          'Couldn\'t load your coach right now.\n${state.message}',
+                          'Couldn’t load your coach.\n${state.message}',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: BudgetaColors.textMuted),
+                          style: const TextStyle(color: Colors.grey),
                         ),
                       ),
                     );
@@ -94,79 +88,103 @@ class _CoachHomeView extends StatelessWidget {
                       : null;
 
                   return SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (primaryAlert != null) ...[
-                          _HomeAlertBanner(alert: primaryAlert),
+                          _AlertBanner(alert: primaryAlert),
                           const SizedBox(height: 18),
                         ],
 
-                        // title + "See all" -> coach feed
-                        MagicSectionTitle(
-                          "Today's Magic 💖",
-                          trailingIcon: Icons.chevron_right,
-                          onTrailingTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const CoachFeedScreen(),
+                        // "Today's Magic"
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Today's Magic ✨",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: BudgetaColors.deep,
                               ),
-                            );
-                          },
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const CoachFeedScreen(),
+                                  ),
+                                );
+                              },
+                              child: const Icon(Icons.chevron_right),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
 
-                        // Daily tip card (UC: Send Daily Tip)
-                        if (loaded.todayTip != null) ...[
-                          CoachTipCard(
+                        const SizedBox(height: 14),
+
+                        if (loaded.todayTip != null)
+                          _CoachTipCard(
                             icon: PhosphorIconsFill.sparkle,
-                            iconBg: const Color(0xFFFFEBE6),
+                            bg: const Color(0xFFFFEBE6),
                             title: loaded.todayTip!.title,
                             label: loaded.todayTip!.label,
-                            description: loaded.todayTip!.body,
+                            desc: loaded.todayTip!.body,
                             onTap: () {
-                              Navigator.of(context).push(
+                              Navigator.push(
+                                context,
                                 MaterialPageRoute(
                                   builder: (_) => const CoachSettingsScreen(),
                                 ),
                               );
                             },
                           ),
-                          const SizedBox(height: 12),
-                        ],
 
-                        // Weekly summary card (UC: Weekly Summary)
-                        if (loaded.weeklySummary != null) ...[
-                          CoachTipCard(
+                        const SizedBox(height: 16),
+
+                        if (loaded.weeklySummary != null)
+                          _CoachTipCard(
                             icon: FeatherIcons.award,
-                            iconBg: const Color(0xFFFFF1DF),
+                            bg: const Color(0xFFFFF1DF),
                             title: loaded.weeklySummary!.title,
                             label: loaded.weeklySummary!.label,
-                            description: loaded.weeklySummary!.body,
+                            desc: loaded.weeklySummary!.body,
                           ),
-                          const SizedBox(height: 24),
-                        ],
 
-                        // Behaviour nudges (UC: adaptive advice / anomalies)
+                        const SizedBox(height: 24),
+
                         if (loaded.nudges.isNotEmpty) ...[
-                          const MagicSectionTitle('Smart nudges for you'),
-                          const SizedBox(height: 12),
-                          for (final nudge in loaded.nudges) ...[
-                            CoachTipCard(
-                              icon: FeatherIcons.zap,
-                              iconBg: const Color(0xFFE3F2FD),
-                              title: nudge.title,
-                              label: nudge.label,
-                              description: nudge.body,
+                          const Text(
+                            'Smart nudges for you 💡',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: BudgetaColors.deep,
                             ),
-                            const SizedBox(height: 10),
-                          ],
-                          const SizedBox(height: 8),
+                          ),
+                          const SizedBox(height: 12),
+
+                          for (final n in loaded.nudges)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _CoachTipCard(
+                                icon: FeatherIcons.zap,
+                                bg: const Color(0xFFE3F2FD),
+                                title: n.title,
+                                label: n.label,
+                                desc: n.body,
+                              ),
+                            ),
                         ],
 
-                        // Encouragement card (gamified / motivation)
-                        const CoachHighlightCard(),
+                        const SizedBox(height: 20),
+
+                        const _CoachHighlightCard(), // 🔥 updated UI here
                       ],
                     ),
                   );
@@ -176,76 +194,96 @@ class _CoachHomeView extends StatelessWidget {
           ],
         ),
       ),
-
-      // 👉 app-wide bottom nav (Coach tab = index 3)
-      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 3),
     );
   }
 }
 
-/// Bigger gradient header for Coach tab (matches other subsystems)
+//
+// HEADER
+//
 class _CoachHeader extends StatelessWidget {
   final String title;
   final String subtitle;
-  final IconData trailingIcon;
-  final VoidCallback? onTrailingTap;
+  final VoidCallback onNotifications;
 
   const _CoachHeader({
     required this.title,
     required this.subtitle,
-    required this.trailingIcon,
-    this.onTrailingTap,
+    required this.onNotifications,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 26),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
+          colors: [BudgetaColors.primary, BudgetaColors.deep],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
-      // more vertical padding & a minimum height
-      padding: const EdgeInsets.fromLTRB(20, 26, 12, 30),
-      constraints: const BoxConstraints(minHeight: 110),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 22, // a bit larger
-                    fontWeight: FontWeight.w700,
-                  ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14, // a bit larger
+              ),
+              IconButton(
+                onPressed: onNotifications,
+                icon: const Icon(
+                  Icons.notifications_none_rounded,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+          ),
+          const SizedBox(height: 18),
+
+          // Mini welcome glass card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withOpacity(0.18),
+                  Colors.white.withOpacity(0.05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              border: Border.all(color: Colors.white24),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.auto_awesome, color: Colors.white, size: 22),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    "Your personalized guidance awaits ✨",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      height: 1.3,
+                    ),
                   ),
                 ),
               ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          InkWell(
-            borderRadius: BorderRadius.circular(24),
-            onTap: onTrailingTap,
-            child: Padding(
-              padding: const EdgeInsets.all(6.0),
-              child: Icon(trailingIcon, color: Colors.white, size: 24),
             ),
           ),
         ],
@@ -254,13 +292,16 @@ class _CoachHeader extends StatelessWidget {
   }
 }
 
-/// Small alert banner on the home screen showing the most urgent alert.
-class _HomeAlertBanner extends StatelessWidget {
+//
+// ALERT BANNER
+//
+class _AlertBanner extends StatelessWidget {
   final Alert alert;
-  const _HomeAlertBanner({required this.alert});
 
-  IconData _iconForType(AlertType type) {
-    switch (type) {
+  const _AlertBanner({required this.alert});
+
+  IconData _getIcon(AlertType t) {
+    switch (t) {
       case AlertType.overspent:
         return FeatherIcons.trendingUp;
       case AlertType.upcomingBill:
@@ -272,8 +313,8 @@ class _HomeAlertBanner extends StatelessWidget {
     }
   }
 
-  Color _bgForType(AlertType type) {
-    switch (type) {
+  Color _getBg(AlertType t) {
+    switch (t) {
       case AlertType.overspent:
         return const Color(0xFFFFEBEE);
       case AlertType.upcomingBill:
@@ -287,39 +328,44 @@ class _HomeAlertBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MagicCard(
-      borderRadius: 18,
+    return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: _bgForType(alert.type),
+              color: _getBg(alert.type),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              _iconForType(alert.type),
+              _getIcon(alert.type),
               size: 18,
               color: BudgetaColors.primary,
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               alert.title,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: BudgetaColors.deep,
+              style: const TextStyle(
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
+                color: BudgetaColors.deep,
               ),
             ),
-          ),
-          TextButton(
-            onPressed: () {
-              context.read<CoachCubit>().dismissAlert(alert.id);
-            },
-            child: const Text('Dismiss', style: TextStyle(fontSize: 12)),
           ),
         ],
       ),
@@ -327,151 +373,157 @@ class _HomeAlertBanner extends StatelessWidget {
   }
 }
 
-/// One tip card (icon on the left, title + label + description)
-class CoachTipCard extends StatelessWidget {
+//
+// TIP CARD
+//
+class _CoachTipCard extends StatelessWidget {
   final IconData icon;
-  final Color iconBg;
+  final Color bg;
   final String title;
   final String label;
-  final String description;
+  final String desc;
   final VoidCallback? onTap;
 
-  const CoachTipCard({
+  const _CoachTipCard({
     super.key,
     required this.icon,
-    required this.iconBg,
+    required this.bg,
     required this.title,
     required this.label,
-    required this.description,
+    required this.desc,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-      child: MagicCard(
-        borderRadius: 18,
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // circular icon
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
-              child: Icon(icon, size: 20, color: BudgetaColors.primary),
-            ),
-            const SizedBox(width: 12),
-
-            // title + label + description
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // title + tiny dot
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          title,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: BudgetaColors.deep,
-                                fontWeight: FontWeight.w700,
-                              ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFFB47CFF),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    label,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: BudgetaColors.textMuted,
-                      fontSize: 11,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    description,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: BudgetaColors.textMuted,
-                      height: 1.35,
-                    ),
-                  ),
-                ],
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
-            ),
-          ],
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
+                child: Icon(icon, color: BudgetaColors.primary, size: 20),
+              ),
+              const SizedBox(width: 12),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: BudgetaColors.deep,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: BudgetaColors.textMuted,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      desc,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: BudgetaColors.textMuted,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// Large “You’re doing amazing!” card at the bottom
-class CoachHighlightCard extends StatelessWidget {
-  const CoachHighlightCard({super.key});
+//
+// 🔥 UPDATED HIGHLIGHT CARD — Bigger & matches screenshot
+//
+class _CoachHighlightCard extends StatelessWidget {
+  const _CoachHighlightCard();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+      margin: const EdgeInsets.only(bottom: 24),
+      constraints: const BoxConstraints(
+        minHeight: 170, // 🔥 bigger like the design
+      ),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF0F4),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: BudgetaColors.primary.withValues(alpha: 0.25),
-        ),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: BudgetaColors.primary.withOpacity(0.25)),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // top round arrow icon
+          // Icon
           Container(
-            width: 40,
-            height: 40,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              border: Border.all(
-                color: BudgetaColors.primary.withValues(alpha: 0.5),
-              ),
+              border: Border.all(color: BudgetaColors.primary.withOpacity(0.5)),
             ),
             child: const Icon(
               FeatherIcons.trendingUp,
-              size: 20,
+              size: 24,
               color: BudgetaColors.primary,
             ),
           ),
-          const SizedBox(height: 12),
-          Text(
+
+          const SizedBox(height: 18),
+
+          const Text(
             "You're doing amazing! 🌟",
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            style: TextStyle(
               color: BudgetaColors.deep,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            "Keep tracking your expenses and watch your savings grow. Every small step counts towards your dreams!",
+
+          const SizedBox(height: 10),
+
+          const Text(
+            "Every small step moves you closer to your goals!",
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            style: TextStyle(
               color: BudgetaColors.textMuted,
+              fontSize: 13,
               height: 1.4,
             ),
           ),

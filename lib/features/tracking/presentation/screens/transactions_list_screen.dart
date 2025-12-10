@@ -104,7 +104,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     await context.read<TrackingCubit>().clearAllUserData();
   }
 
-  // ---------- NEW: OPEN CATEGORY RULES (ADMIN) ----------
+  // ---------- OPEN CATEGORY RULES (ADMIN) ----------
 
   void _openCategoryRules() {
     Navigator.push(
@@ -113,7 +113,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     );
   }
 
-  // ---------- NEW: RUN RECURRING NOW ----------
+  // ---------- RUN RECURRING NOW ----------
 
   Future<void> _runRecurringNow() async {
     final cubit = context.read<TrackingCubit>();
@@ -131,7 +131,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     );
   }
 
-  // ---------- NEW: QUICK SUMMARY ----------
+  // ---------- QUICK SUMMARY ----------
 
   Future<void> _showQuickSummary() async {
     final cubit = context.read<TrackingCubit>();
@@ -212,7 +212,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     return s[0].toUpperCase() + s.substring(1);
   }
 
-  // ---------- NEW: EXPORT CSV ----------
+  // ---------- EXPORT CSV ----------
 
   Future<void> _exportCsv() async {
     final cubit = context.read<TrackingCubit>();
@@ -405,8 +405,8 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                                 decoration: BoxDecoration(
                                   gradient: const LinearGradient(
                                     colors: [
-                                      Color(0xFF9A0E3A),
-                                      Color(0xFFFF4F8B),
+                                      BudgetaColors.primary,
+                                      BudgetaColors.deep,
                                     ],
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
@@ -471,7 +471,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
       backgroundColor: BudgetaColors.backgroundLight,
       bottomNavigationBar: const BudgetaBottomNav(currentIndex: 1),
 
-      // Main FAB on the right (matches recurring screen style)
+      // Main FAB on the right (matches recurring/gamification style)
       floatingActionButton: _MainAddFab(
         onAddExpense: () => showAddTransactionBottomSheet(
           context,
@@ -501,8 +501,8 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                 decoration: const BoxDecoration(
                   color: BudgetaColors.background,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(28),
-                    topRight: Radius.circular(28),
+                    topLeft: Radius.circular(32),
+                    topRight: Radius.circular(32),
                   ),
                 ),
                 child: Column(
@@ -516,13 +516,18 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: BudgetaColors.accentLight.withValues(
-                          alpha: 0.15,
-                        ),
+                        color: Colors.white,
                         borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(28),
-                          topRight: Radius.circular(28),
+                          topLeft: Radius.circular(32),
+                          topRight: Radius.circular(32),
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
@@ -679,8 +684,18 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: BudgetaColors.accentLight.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(14),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: BudgetaColors.accentLight.withValues(alpha: 0.6),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: const Row(
         children: [
@@ -725,17 +740,13 @@ class _TrackingHeader extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
+          colors: [BudgetaColors.primary, BudgetaColors.deep],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
-      // ⬇️ made the header “card” a bit taller
-      padding: const EdgeInsets.fromLTRB(20, 26, 12, 30),
+      padding: const EdgeInsets.fromLTRB(20, 16, 12, 24),
       constraints: const BoxConstraints(minHeight: 110),
       child: Row(
         children: [
@@ -747,17 +758,14 @@ class _TrackingHeader extends StatelessWidget {
                   'Expense Tracking ✨',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 22, // was 20
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 6), // was 4
+                SizedBox(height: 4),
                 Text(
                   'Track every penny with sparkle!',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14, // was 13
-                  ),
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
             ),
@@ -933,7 +941,7 @@ class _MainAddFabState extends State<_MainAddFab> {
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [Color(0xFFFF4F8B), Color(0xFF9A0E3A)],
+                    colors: [BudgetaColors.primary, BudgetaColors.deep],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),

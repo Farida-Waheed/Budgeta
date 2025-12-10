@@ -81,7 +81,6 @@ class DashboardHomeScreen extends StatelessWidget {
                         // ---------------------------
                         TimeFilterBar(
                           onFilterChanged: (dash_repo.DashboardFilter f) {
-                            // 🔁 keep advanced filters, only change time range
                             cubit.changeTimeRange(f);
                           },
                         ),
@@ -251,7 +250,6 @@ class _AddTransactionFab extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Sheet-style Add Transaction UI
         showAddTransactionBottomSheet(
           context,
           preselectedType: TransactionType.expense,
@@ -260,18 +258,18 @@ class _AddTransactionFab extends StatelessWidget {
       child: Container(
         width: 58,
         height: 58,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [Color(0xFFFF4F8B), Color(0xFF9A0E3A)],
+          gradient: const LinearGradient(
+            colors: [BudgetaColors.primary, BudgetaColors.deep],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black26,
-              blurRadius: 12,
-              offset: Offset(0, 6),
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -300,20 +298,17 @@ class _DashboardHeader extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
+          colors: [BudgetaColors.primary, BudgetaColors.deep],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 26),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 26),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Greeting + circular sparkles button
+          // Greeting + circular sparkle button
           Row(
             children: [
               const Expanded(
@@ -340,7 +335,7 @@ class _DashboardHeader extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.22),
+                  color: Colors.white.withValues(alpha: 0.18),
                   shape: BoxShape.circle,
                 ),
                 child: const Center(
@@ -354,20 +349,23 @@ class _DashboardHeader extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
 
-          // Main balance card
+          // Main balance card – styled like challenge dialog
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: BudgetaColors.accentLight.withValues(alpha: 0.9),
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.20),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
+                  color: Colors.black.withValues(alpha: 0.10),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
@@ -393,7 +391,6 @@ class _DashboardHeader extends StatelessWidget {
                 const SizedBox(height: 10),
                 Row(
                   children: [
-                    // income
                     Row(
                       children: [
                         const Icon(
@@ -413,7 +410,6 @@ class _DashboardHeader extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(width: 18),
-                    // expenses
                     Row(
                       children: [
                         const Icon(
@@ -501,7 +497,6 @@ class _AdvancedFiltersRow extends StatelessWidget {
         const SizedBox(height: 6),
         Row(
           children: [
-            // Type filters
             Wrap(
               spacing: 6,
               children: [
@@ -675,9 +670,9 @@ class _QuickStatCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -876,7 +871,7 @@ class _TrendBars extends StatelessWidget {
     final maxValue = points
         .map((e) => e.value)
         .fold<double>(0, (a, b) => b > a ? b : a);
-    final maxBarHeight = 80.0;
+    const maxBarHeight = 80.0;
 
     String shortDate(DateTime d) {
       return '${d.month}/${d.day}';
@@ -941,8 +936,8 @@ class _TopSpendingSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: const [
+        const Row(
+          children: [
             Text(
               'Top Spending ✨',
               style: TextStyle(
@@ -1574,7 +1569,7 @@ Future<String?> _askPresetNameDialog(BuildContext context) async {
 }
 
 /// ==========================================================
-/// TRANSACTION LIST BOTTOM SHEET (nice white rounded sheet)
+/// TRANSACTION LIST BOTTOM SHEET
 /// ==========================================================
 Future<void> _showCategoryTransactionsSheet({
   required BuildContext context,
@@ -1677,7 +1672,6 @@ Future<void> _showCategoryTransactionsSheet({
   );
 }
 
-/// Helper widget for a single transaction row in the bottom sheet
 class _TransactionListItem extends StatelessWidget {
   final String note;
   final String date;

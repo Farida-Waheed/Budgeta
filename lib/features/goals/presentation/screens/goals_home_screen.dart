@@ -68,7 +68,7 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
       body: SafeArea(
         child: Column(
           children: [
-            const _GoalsHeader(), // ⬅️ bigger custom header
+            const _GoalsHeader(), // ⬅️ bigger custom header (now same colors as Challenges)
             Expanded(
               child: BlocBuilder<GoalsCubit, GoalsState>(
                 builder: (context, state) {
@@ -90,7 +90,7 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
                   final loaded = state as GoalsLoaded;
                   final goals = loaded.goals;
 
-                  // Match Tracking layout: rounded container + top bar
+                  // Match Tracking / Challenges vibe: rounded top section + soft bar
                   return Container(
                     decoration: const BoxDecoration(
                       color: BudgetaColors.background,
@@ -102,7 +102,7 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Upper bar – same shape/height as "All Transactions 💖"
+                        // Upper bar – styled like a soft white strip (similar to text bands on Challenges)
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
@@ -110,21 +110,39 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
                             vertical: 12,
                           ),
                           decoration: BoxDecoration(
-                            color: BudgetaColors.accentLight.withValues(
-                              alpha: 0.15,
-                            ),
+                            color: Colors.white,
                             borderRadius: const BorderRadius.only(
                               topLeft: Radius.circular(28),
                               topRight: Radius.circular(28),
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                          child: const Text(
-                            'Your Treasure Quests ✨',
-                            style: TextStyle(
-                              color: BudgetaColors.deep,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
+                          child: const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Your Treasure Quests ✨',
+                                style: TextStyle(
+                                  color: BudgetaColors.deep,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Create a goal and celebrate every tiny step.',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: BudgetaColors.textMuted,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
 
@@ -308,7 +326,6 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
   // ---------- Details (flip card sheet) ----------
 
   Future<void> _openGoalDetails(Goal goal) async {
-    // reuse the same GoalsCubit instance inside the bottom sheet
     final goalsCubit = context.read<GoalsCubit>();
 
     await showModalBottomSheet(
@@ -330,7 +347,7 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
   }
 }
 
-/// Bigger header card for Goals (matches Tracking/Recurring style)
+/// Bigger header card for Goals (now matches Challenges header colors & radius)
 class _GoalsHeader extends StatelessWidget {
   const _GoalsHeader();
 
@@ -339,17 +356,13 @@ class _GoalsHeader extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
+          colors: [BudgetaColors.primary, BudgetaColors.deep],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
-      // more vertical padding & a minimum height
-      padding: const EdgeInsets.fromLTRB(20, 26, 12, 30),
+      padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 24),
       constraints: const BoxConstraints(minHeight: 110),
       child: const Row(
         children: [
@@ -361,17 +374,14 @@ class _GoalsHeader extends StatelessWidget {
                   'Savings Goals 💰',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 22, // was 20
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 6), // was 4
+                SizedBox(height: 4),
                 Text(
-                  'Your dreams are just a sparkle away!',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14, // was 13
-                  ),
+                  'Turn your dreams into real-life milestones.',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
             ),
@@ -384,7 +394,7 @@ class _GoalsHeader extends StatelessWidget {
   }
 }
 
-/// FAB – same size & placement as Expense Tracking main plus
+/// FAB – same colors/vibe as Challenges FAB
 class _AddGoalFab extends StatelessWidget {
   final VoidCallback onTap;
   const _AddGoalFab({required this.onTap});
@@ -396,18 +406,18 @@ class _AddGoalFab extends StatelessWidget {
       child: Container(
         width: 58,
         height: 58,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [Color(0xFFFF4F8B), Color(0xFF9A0E3A)],
+          gradient: const LinearGradient(
+            colors: [BudgetaColors.primary, BudgetaColors.deep],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black26,
-              blurRadius: 12,
-              offset: Offset(0, 6),
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
