@@ -68,11 +68,7 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
       body: SafeArea(
         child: Column(
           children: [
-            const MagicGradientHeader(
-              title: 'Savings Goals 💰',
-              subtitle: 'Your dreams are just a sparkle away!',
-              trailingIcon: Icons.more_vert,
-            ),
+            const _GoalsHeader(), // ⬅️ bigger custom header
             Expanded(
               child: BlocBuilder<GoalsCubit, GoalsState>(
                 builder: (context, state) {
@@ -330,6 +326,60 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Bigger header card for Goals (matches Tracking/Recurring style)
+class _GoalsHeader extends StatelessWidget {
+  const _GoalsHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+      ),
+      // more vertical padding & a minimum height
+      padding: const EdgeInsets.fromLTRB(20, 26, 12, 30),
+      constraints: const BoxConstraints(minHeight: 110),
+      child: const Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Savings Goals 💰',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22, // was 20
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: 6), // was 4
+                Text(
+                  'Your dreams are just a sparkle away!',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14, // was 13
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 8),
+          Icon(Icons.more_vert, color: Colors.white),
+        ],
+      ),
     );
   }
 }

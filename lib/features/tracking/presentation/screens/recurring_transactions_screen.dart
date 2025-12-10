@@ -479,9 +479,11 @@ class _RecurringHeader extends StatelessWidget {
           bottomRight: Radius.circular(28),
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-      child: Row(
-        children: const [
+      // ⬇️ made header card taller & text slightly bigger
+      padding: const EdgeInsets.fromLTRB(20, 26, 20, 30),
+      constraints: const BoxConstraints(minHeight: 110),
+      child: const Row(
+        children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -490,14 +492,17 @@ class _RecurringHeader extends StatelessWidget {
                   'Recurring & Schedules',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 22, // was 20
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: 6), // was 4
                 Text(
                   'Automate your financial habits ✨',
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14, // was 13
+                  ),
                 ),
               ],
             ),

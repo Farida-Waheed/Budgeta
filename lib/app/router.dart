@@ -20,7 +20,7 @@ import '../features/coach/presentation/screens/coach_home_screen.dart';
 import '../features/goals/presentation/screens/goals_home_screen.dart';
 import '../features/community/presentation/screens/community_feed_screen.dart';
 
-// GAMIFICATION / CHALLENGES
+// ⭐ GAMIFICATION – CHALLENGES
 import '../features/gamification/presentation/screens/challenges_screen.dart';
 
 // SETTINGS
@@ -91,6 +91,14 @@ class AppRouter {
         );
 
       case AppRoutes.addTransaction:
+        // Can be called with:
+        // Navigator.pushNamed(context, AppRoutes.addTransaction);
+        // or with a preselected type:
+        // Navigator.pushNamed(
+        //   context,
+        //   AppRoutes.addTransaction,
+        //   arguments: TransactionType.income,
+        // );
         TransactionType? preselected;
         final args = settings.arguments;
         if (args is TransactionType) {
@@ -105,6 +113,7 @@ class AppRouter {
         );
 
       case AppRoutes.editTransaction:
+        // Expect: Navigator.pushNamed(context, AppRoutes.editTransaction, arguments: tx);
         final args = settings.arguments;
         if (args is! Transaction) {
           return _errorRoute('EditTransactionScreen needs a Transaction.');

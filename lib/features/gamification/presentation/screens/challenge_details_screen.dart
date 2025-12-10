@@ -39,7 +39,7 @@ class ChallengeDetailsScreen extends StatelessWidget {
           children: [
             Text(
               current.name,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: BudgetaColors.deep,
@@ -68,7 +68,7 @@ class ChallengeDetailsScreen extends StatelessWidget {
                 value: current.progress,
                 minHeight: 10,
                 backgroundColor: Colors.pink.shade50,
-                valueColor: AlwaysStoppedAnimation<Color>(
+                valueColor: const AlwaysStoppedAnimation<Color>(
                   BudgetaColors.primary,
                 ),
               ),
@@ -111,7 +111,7 @@ class ChallengeDetailsScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24),
                     ),
-                    side: BorderSide(color: BudgetaColors.primary),
+                    side: const BorderSide(color: BudgetaColors.primary),
                   ),
                   onPressed: () {
                     cubit.completeToday(current.id);

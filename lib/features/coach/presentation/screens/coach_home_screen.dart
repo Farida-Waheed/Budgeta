@@ -48,8 +48,8 @@ class _CoachHomeView extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // 🔝 same top section style as other subsystems
-            MagicGradientHeader(
+            // 🔝 bigger top section, same style as other subsystems
+            _CoachHeader(
               title: 'Your AI Coach ✨',
               subtitle: 'Personalized tips just for you!',
               trailingIcon: Icons.notifications_none_rounded,
@@ -179,6 +179,77 @@ class _CoachHomeView extends StatelessWidget {
 
       // 👉 app-wide bottom nav (Coach tab = index 3)
       bottomNavigationBar: const BudgetaBottomNav(currentIndex: 3),
+    );
+  }
+}
+
+/// Bigger gradient header for Coach tab (matches other subsystems)
+class _CoachHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData trailingIcon;
+  final VoidCallback? onTrailingTap;
+
+  const _CoachHeader({
+    required this.title,
+    required this.subtitle,
+    required this.trailingIcon,
+    this.onTrailingTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+      ),
+      // more vertical padding & a minimum height
+      padding: const EdgeInsets.fromLTRB(20, 26, 12, 30),
+      constraints: const BoxConstraints(minHeight: 110),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22, // a bit larger
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14, // a bit larger
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            borderRadius: BorderRadius.circular(24),
+            onTap: onTrailingTap,
+            child: Padding(
+              padding: const EdgeInsets.all(6.0),
+              child: Icon(trailingIcon, color: Colors.white, size: 24),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -380,7 +451,7 @@ class CoachHighlightCard extends StatelessWidget {
                 color: BudgetaColors.primary.withValues(alpha: 0.5),
               ),
             ),
-            child: Icon(
+            child: const Icon(
               FeatherIcons.trendingUp,
               size: 20,
               color: BudgetaColors.primary,

@@ -734,7 +734,9 @@ class _TrackingHeader extends StatelessWidget {
           bottomRight: Radius.circular(28),
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
+      // ⬇️ made the header “card” a bit taller
+      padding: const EdgeInsets.fromLTRB(20, 26, 12, 30),
+      constraints: const BoxConstraints(minHeight: 110),
       child: Row(
         children: [
           const Expanded(
@@ -745,14 +747,17 @@ class _TrackingHeader extends StatelessWidget {
                   'Expense Tracking ✨',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 22, // was 20
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: 6), // was 4
                 Text(
                   'Track every penny with sparkle!',
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14, // was 13
+                  ),
                 ),
               ],
             ),
