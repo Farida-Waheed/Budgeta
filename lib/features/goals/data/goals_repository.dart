@@ -1,5 +1,5 @@
 // lib/features/goals/data/goals_repository.dart
-import '../../../core/models/goal.dart';
+import '../../../../core/models/goal.dart';
 
 /// -------- Contract / interface ----------
 abstract class GoalsRepository {

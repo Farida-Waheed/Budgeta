@@ -14,7 +14,7 @@ import 'features/dashboard/data/in_memory_dashboard_repository.dart';
 import 'features/dashboard/state/dashboard_cubit.dart';
 
 // 🔹 Goals
-import 'features/goals/data//in_memory_goals_repository.dart';
+import 'features/goals/data/in_memory_goals_repository.dart';
 import 'features/goals/state/goals_cubit.dart';
 
 // 🔹 Gamification

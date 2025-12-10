@@ -495,92 +495,94 @@ class _AdvancedFiltersRow extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        Row(
-          children: [
-            Wrap(
-              spacing: 6,
-              children: [
-                FilterChip(
-                  label: const Text('All'),
-                  selected: selectedType == null,
-                  onSelected: (_) => onTypeChanged(null),
-                ),
-                FilterChip(
-                  label: const Text('Expenses'),
-                  selected: selectedType == TransactionType.expense,
-                  onSelected: (_) => onTypeChanged(TransactionType.expense),
-                ),
-                FilterChip(
-                  label: const Text('Income'),
-                  selected: selectedType == TransactionType.income,
-                  onSelected: (_) => onTypeChanged(TransactionType.income),
-                ),
-              ],
-            ),
-            const Spacer(),
-            TextButton.icon(
-              onPressed: () async {
-                if (availableCategories.isEmpty) {
-                  onCategoryChanged(null);
-                  return;
-                }
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              FilterChip(
+                label: const Text('All'),
+                selected: selectedType == null,
+                onSelected: (_) => onTypeChanged(null),
+              ),
+              const SizedBox(width: 8),
+              FilterChip(
+                label: const Text('Expenses'),
+                selected: selectedType == TransactionType.expense,
+                onSelected: (_) => onTypeChanged(TransactionType.expense),
+              ),
+                            const SizedBox(width: 8),
 
-                final uniqueIds = {
-                  for (final c in availableCategories) c.categoryId,
-                }.toList();
+              FilterChip(
+                label: const Text('Income'),
+                selected: selectedType == TransactionType.income,
+                onSelected: (_) => onTypeChanged(TransactionType.income),
+              ),
+                            const SizedBox(width: 8),
 
-                final chosen = await showModalBottomSheet<String?>(
-                  context: context,
-                  builder: (ctx) {
-                    return SafeArea(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const ListTile(
-                            title: Text(
-                              'Filter by category',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: BudgetaColors.deep,
+              TextButton.icon(
+                onPressed: () async {
+                  if (availableCategories.isEmpty) {
+                    onCategoryChanged(null);
+                    return;
+                  }
+          
+                  final uniqueIds = {
+                    for (final c in availableCategories) c.categoryId,
+                  }.toList();
+          
+                  final chosen = await showModalBottomSheet<String?>(
+                    context: context,
+                    builder: (ctx) {
+                      return SafeArea(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const ListTile(
+                              title: Text(
+                                'Filter by category',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: BudgetaColors.deep,
+                                ),
                               ),
                             ),
-                          ),
-                          const Divider(height: 1),
-                          ListTile(
-                            title: const Text('All categories'),
-                            onTap: () => Navigator.of(ctx).pop(null),
-                          ),
-                          for (final id in uniqueIds)
+                            const Divider(height: 1),
                             ListTile(
-                              title: Text(_prettyCategory(id)),
-                              onTap: () => Navigator.of(ctx).pop(id),
+                              title: const Text('All categories'),
+                              onTap: () => Navigator.of(ctx).pop(null),
                             ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-
-                onCategoryChanged(chosen);
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: BudgetaColors.primary,
-                textStyle: const TextStyle(fontSize: 12.5),
+                            for (final id in uniqueIds)
+                              ListTile(
+                                title: Text(_prettyCategory(id)),
+                                onTap: () => Navigator.of(ctx).pop(id),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+          
+                  onCategoryChanged(chosen);
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: BudgetaColors.primary,
+                  textStyle: const TextStyle(fontSize: 12.5),
+                ),
+                icon: const Icon(Icons.filter_list_rounded, size: 16),
+                label: Text(
+                  selectedCategoryId == null
+                      ? 'Category: All'
+                      : 'Category: ${_prettyCategory(selectedCategoryId)}',
+                ),
               ),
-              icon: const Icon(Icons.filter_list_rounded, size: 16),
-              label: Text(
-                selectedCategoryId == null
-                    ? 'Category: All'
-                    : 'Category: ${_prettyCategory(selectedCategoryId)}',
-              ),
-            ),
-            if (hasFilters)
-              IconButton(
-                tooltip: 'Clear advanced filters',
-                onPressed: onClearFilters,
-                icon: const Icon(Icons.clear_rounded, size: 18),
-              ),
-          ],
+              if (hasFilters)
+                IconButton(
+                  tooltip: 'Clear advanced filters',
+                  onPressed: onClearFilters,
+                  icon: const Icon(Icons.clear_rounded, size: 18),
+                ),
+            ],
+          ),
         ),
       ],
     );

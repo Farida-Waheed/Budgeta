@@ -1,5 +1,5 @@
 // lib/features/goals/data/in_memory_goals_repository.dart
-import '../../../core/models/goal.dart';
+import '../../../../core/models/goal.dart';
 import 'goals_repository.dart';
 
 /// -------- In-memory implementation ----------

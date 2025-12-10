@@ -109,7 +109,7 @@ class DashboardOverviewScreen extends StatelessWidget {
                       // Go to main dashboard and remove hero from back stack
                       Navigator.pushReplacementNamed(
                         context,
-                        AppRoutes.dashboard,
+                        AppRoutes.login,
                       );
                     },
                   ),
