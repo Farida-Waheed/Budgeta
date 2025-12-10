@@ -29,11 +29,9 @@ class TransactionTile extends StatelessWidget {
     final subtitle = _capitalize(transaction.categoryId);
     final dateString = transaction.date.toLocal().toString().split(' ').first;
 
-    // Simple MVP logic: if note contains "Receipt attached",
-    // show a small paperclip icon.
-    final hasReceipt = (transaction.note ?? '').toLowerCase().contains(
-      'receipt attached',
-    );
+    final hasReceipt =
+        transaction.receiptImagePath != null ||
+        (transaction.note ?? '').toLowerCase().contains('receipt attached');
 
     return Material(
       color: Colors.transparent,
@@ -58,7 +56,6 @@ class TransactionTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // circular icon like the mockup
               Container(
                 width: 40,
                 height: 40,

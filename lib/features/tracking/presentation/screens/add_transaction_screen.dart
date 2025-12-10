@@ -1,3 +1,4 @@
+// lib/features/tracking/presentation/screens/add_transaction_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -6,7 +7,6 @@ import '../../../../core/models/transaction.dart';
 import '../../state/tracking_cubit.dart';
 import '../widgets/category_chip_list.dart';
 
-/// Wrapper route (optional). Prefer using [showAddTransactionBottomSheet].
 class AddTransactionScreen extends StatelessWidget {
   final TransactionType? preselectedType;
 
@@ -15,22 +15,15 @@ class AddTransactionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Let the previous page show through if this is pushed
       backgroundColor: Colors.black.withValues(alpha: 0.35),
       body: SafeArea(
         child: Align(
           alignment: Alignment.bottomCenter,
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: 500,
-                maxHeight: MediaQuery.of(context).size.height * 0.7,
-              ),
-              child: AddTransactionSheetContent(
-                preselectedType: preselectedType,
-                onClose: () => Navigator.of(context).pop(),
-              ),
+            child: AddTransactionSheetContent(
+              preselectedType: preselectedType,
+              onClose: () => Navigator.of(context).pop(),
             ),
           ),
         ),
@@ -39,7 +32,6 @@ class AddTransactionScreen extends StatelessWidget {
   }
 }
 
-/// The actual card / sheet that matches the mockup.
 class AddTransactionSheetContent extends StatelessWidget {
   final TransactionType? preselectedType;
   final VoidCallback? onClose;
@@ -53,53 +45,28 @@ class AddTransactionSheetContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: BudgetaColors.backgroundLight,
+      color: Colors.white,
       borderRadius: BorderRadius.circular(32),
-      elevation: 8,
+      elevation: 10,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
-        child: SizedBox(
-          width: double.infinity,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 10),
-              // top handle
-              Container(
-                width: 60,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 12),
-              // title row
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Row(
                   children: [
                     const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Add Transaction ✨',
-                            style: TextStyle(
-                              color: BudgetaColors.deep,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Log money moves in seconds',
-                            style: TextStyle(
-                              color: BudgetaColors.textMuted,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Add Transaction ✨',
+                        style: TextStyle(
+                          color: BudgetaColors.deep,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     IconButton(
@@ -109,36 +76,12 @@ class AddTransactionSheetContent extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white, // inner white card like mock
-                      borderRadius: BorderRadius.circular(26),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: AddTransactionForm(
-                        preselectedType: preselectedType,
-                      ),
-                    ),
-                  ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: AddTransactionForm(preselectedType: preselectedType),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -146,7 +89,6 @@ class AddTransactionSheetContent extends StatelessWidget {
   }
 }
 
-/// Form used both in sheet & full-screen.
 class AddTransactionForm extends StatefulWidget {
   final TransactionType? preselectedType;
 
@@ -167,6 +109,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
   String? _suggestedCategoryId;
   bool _receiptAttached = false;
+  String? _receiptImagePath;
 
   @override
   void initState() {
@@ -190,20 +133,15 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     final note = _noteController.text.toLowerCase();
     String? suggestion;
 
-    if (note.contains('rent')) {
-      suggestion = 'rent';
-    } else if (note.contains('coffee') || note.contains('starbucks')) {
-      suggestion = 'coffee';
-    } else if (note.contains('salary') ||
-        note.contains('pay') ||
-        note.contains('income')) {
-      suggestion = 'salary';
-    } else if (note.contains('uber') ||
-        note.contains('bus') ||
-        note.contains('taxi')) {
-      suggestion = 'transport';
-    } else {
-      suggestion = null;
+    final state = context.read<TrackingCubit>().state;
+    if (state is TrackingLoaded) {
+      for (final rule in state.categoryRules) {
+        if (!rule.isActive) continue;
+        if (note.contains(rule.pattern.toLowerCase())) {
+          suggestion = rule.categoryId;
+          break;
+        }
+      }
     }
 
     if (suggestion != _suggestedCategoryId) {
@@ -228,6 +166,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
           : _noteController.text,
       categoryId: _selectedCategoryId,
       type: _type,
+      receiptImagePath: _receiptImagePath,
     );
 
     await trackingCubit.addNewTransaction(tx);
@@ -242,6 +181,28 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     setState(() => _selectedCategoryId = _suggestedCategoryId!);
   }
 
+  void _toggleReceipt() {
+    setState(() {
+      _receiptAttached = !_receiptAttached;
+      if (_receiptAttached) {
+        // MVP demo: fake path; real app would use image_picker and real storage.
+        _receiptImagePath =
+            'receipt_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      } else {
+        _receiptImagePath = null;
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _receiptAttached ? 'Receipt marked as attached.' : 'Receipt removed.',
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isExpense = _type == TransactionType.expense;
@@ -249,7 +210,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
     final fieldTheme = Theme.of(context).copyWith(
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFFFFF1F5), // soft pink field bg
+        fillColor: const Color(0xFFFFF1F5),
         labelStyle: const TextStyle(fontSize: 13),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
@@ -269,7 +230,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
         child: ListView(
           shrinkWrap: true,
           children: [
-            // Expense / Income segmented control
+            // type toggle
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
@@ -307,7 +268,6 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
             const SizedBox(height: 18),
 
-            // Amount
             Text(
               'Amount',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -337,7 +297,6 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
             const SizedBox(height: 18),
 
-            // Category
             Text(
               'Category',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -359,7 +318,6 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
             const SizedBox(height: 18),
 
-            // Description
             Text(
               'Description (Optional)',
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -423,19 +381,7 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
                             : Colors.grey,
                       ),
                     ),
-                    onTap: () {
-                      setState(() => _receiptAttached = !_receiptAttached);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            _receiptAttached
-                                ? 'Receipt marked as attached.'
-                                : 'Receipt removed.',
-                          ),
-                          duration: const Duration(seconds: 1),
-                        ),
-                      );
-                    },
+                    onTap: _toggleReceipt,
                   ),
                 ),
               ],
@@ -443,7 +389,6 @@ class _AddTransactionFormState extends State<AddTransactionForm> {
 
             const SizedBox(height: 22),
 
-            // Bottom primary CTA
             SizedBox(
               height: 50,
               child: DecoratedBox(
@@ -557,7 +502,6 @@ class _TypeSegment extends StatelessWidget {
   }
 }
 
-/// Helper for opening as a bottom sheet from any screen.
 Future<void> showAddTransactionBottomSheet(
   BuildContext context, {
   TransactionType? preselectedType,
@@ -573,7 +517,7 @@ Future<void> showAddTransactionBottomSheet(
           left: 8,
           right: 8,
           bottom: mq.viewInsets.bottom + 8,
-          top: mq.size.height * 0.3, // slightly shorter sheet
+          top: mq.size.height * 0.25,
         ),
         child: AddTransactionSheetContent(
           preselectedType: preselectedType,

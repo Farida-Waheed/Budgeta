@@ -1,3 +1,4 @@
+// lib/features/tracking/presentation/screens/transactions_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -41,11 +42,8 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     );
   }
 
-  void _onEdit(Transaction tx) async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => EditTransactionScreen(transaction: tx)),
-    );
+  Future<void> _onEdit(Transaction tx) async {
+    await showEditTransactionBottomSheet(context, transaction: tx);
   }
 
   Future<void> _onDelete(Transaction tx) async {
@@ -113,113 +111,191 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.35),
       builder: (ctx) {
         return SafeArea(
           child: Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(ctx).viewInsets.bottom,
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: StatefulBuilder(
-                builder: (ctx, setSheetState) {
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const Text(
-                        'Filters',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: BudgetaColors.deep,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildTypeChip(
-                            label: 'All',
-                            selected: tempType == null,
-                            onTap: () {
-                              setSheetState(() => tempType = null);
-                            },
-                          ),
-                          _buildTypeChip(
-                            label: 'Expenses',
-                            selected: tempType == TransactionType.expense,
-                            onTap: () {
-                              setSheetState(
-                                () => tempType = TransactionType.expense,
-                              );
-                            },
-                          ),
-                          _buildTypeChip(
-                            label: 'Income',
-                            selected: tempType == TransactionType.income,
-                            onTap: () {
-                              setSheetState(
-                                () => tempType = TransactionType.income,
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Category',
-                          style: Theme.of(context).textTheme.labelLarge
-                              ?.copyWith(color: BudgetaColors.deep),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      CategoryChipList(
-                        selectedCategoryId: tempCategory,
-                        onCategorySelected: (id) {
-                          setSheetState(() => tempCategory = id);
-                        },
-                        incomeOnly: false,
-                        showAllChip: true,
-                      ),
-                      const SizedBox(height: 16),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: FilledButton(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: BudgetaColors.primary,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: BudgetaColors.backgroundLight,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
+                    bottom: Radius.circular(24),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 12,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: StatefulBuilder(
+                  builder: (ctx, setSheetState) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // drag handle
+                        Container(
+                          width: 48,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: BudgetaColors.accentLight.withValues(
+                              alpha: 0.7,
                             ),
+                            borderRadius: BorderRadius.circular(2),
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _filterType = tempType;
-                              _filterCategoryId = tempCategory;
-                            });
-                            Navigator.pop(ctx);
-                          },
-                          child: const Text('Apply filters'),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                  );
-                },
+                        const Text(
+                          'Filters',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: BudgetaColors.deep,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // type chips
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildTypeChip(
+                              label: 'All',
+                              selected: tempType == null,
+                              onTap: () {
+                                setSheetState(() => tempType = null);
+                              },
+                            ),
+                            _buildTypeChip(
+                              label: 'Expenses',
+                              selected: tempType == TransactionType.expense,
+                              onTap: () {
+                                setSheetState(
+                                  () => tempType = TransactionType.expense,
+                                );
+                              },
+                            ),
+                            _buildTypeChip(
+                              label: 'Income',
+                              selected: tempType == TransactionType.income,
+                              onTap: () {
+                                setSheetState(
+                                  () => tempType = TransactionType.income,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+
+                        // category label
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Category',
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  color: BudgetaColors.deep,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        // category chips
+                        CategoryChipList(
+                          selectedCategoryId: tempCategory,
+                          onCategorySelected: (id) {
+                            setSheetState(() => tempCategory = id);
+                          },
+                          incomeOnly: false,
+                          showAllChip: true,
+                        ),
+                        const SizedBox(height: 22),
+
+                        // buttons row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  color: BudgetaColors.textMuted,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 40,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF9A0E3A),
+                                      Color(0xFFFF4F8B),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(22),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.18,
+                                      ),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: TextButton(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(22),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _filterType = tempType;
+                                      _filterCategoryId = tempCategory;
+                                    });
+                                    Navigator.pop(ctx);
+                                  },
+                                  child: const Text(
+                                    'Apply filters',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -236,7 +312,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
       backgroundColor: BudgetaColors.backgroundLight,
       bottomNavigationBar: const BudgetaBottomNav(currentIndex: 1),
 
-      // ✅ Single main FAB, centered, same style as dashboard
+      // Main FAB on the right (matches recurring screen style)
       floatingActionButton: _MainAddFab(
         onAddExpense: () => showAddTransactionBottomSheet(
           context,
@@ -247,7 +323,7 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
           preselectedType: TransactionType.income,
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
       body: SafeArea(
         child: Column(
@@ -555,7 +631,7 @@ class _TrackingHeader extends StatelessWidget {
   }
 }
 
-// ---------------- MAIN ADD FAB (dashboard style) ----------------
+// ---------------- MAIN ADD FAB (right side with menu) ----------------
 
 class _MainAddFab extends StatefulWidget {
   final VoidCallback onAddIncome;
@@ -573,15 +649,18 @@ class _MainAddFabState extends State<_MainAddFab> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 120,
-      height: 140,
+      width: 220,
+      height: 170,
       child: Stack(
-        alignment: Alignment.bottomCenter,
+        clipBehavior: Clip.none,
+        alignment: Alignment.bottomRight,
         children: [
           if (_open)
             Positioned(
+              right: 70,
               bottom: 70,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   _FabActionRow(
                     label: 'Add Income',
@@ -606,31 +685,35 @@ class _MainAddFabState extends State<_MainAddFab> {
               ),
             ),
 
-          // main square + button
-          GestureDetector(
-            onTap: () => setState(() => _open = !_open),
-            child: Container(
-              width: 58,
-              height: 58,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFF4F8B), Color(0xFF9A0E3A)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 12,
-                    offset: Offset(0, 6),
+          // main circular FAB
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: GestureDetector(
+              onTap: () => setState(() => _open = !_open),
+              child: Container(
+                width: 58,
+                height: 58,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFFF4F8B), Color(0xFF9A0E3A)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
-                ],
-              ),
-              child: Icon(
-                _open ? Icons.close : Icons.add,
-                color: Colors.white,
-                size: 28,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 12,
+                      offset: Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  _open ? Icons.close : Icons.add,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
             ),
           ),
@@ -658,6 +741,7 @@ class _FabActionRow extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),

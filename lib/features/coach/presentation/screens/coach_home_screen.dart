@@ -1,6 +1,7 @@
 // lib/features/coach/presentation/screens/coach_home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../app/theme.dart';
@@ -10,6 +11,11 @@ import '../../../../core/widgets/gradient_header.dart';
 import '../../../../core/widgets/card.dart';
 import '../../../../core/widgets/section_title.dart';
 import '../../../../shared/bottom_nav.dart';
+import '../../../../core/models/alert.dart';
+
+// coach state + repo
+import '../../state/coach_cubit.dart';
+import '../../data/fake_coach_repository.dart';
 
 // other coach screens
 import 'alerts_screen.dart';
@@ -21,89 +27,150 @@ class CoachHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Provide CoachCubit here so this tab is INTERACTIVE
+    return BlocProvider(
+      create: (_) => CoachCubit(
+        repository: FakeCoachRepository(),
+        userId: 'demo-user', // later you can pass real user id
+      )..loadCoachHome(),
+      child: const _CoachHomeView(),
+    );
+  }
+}
+
+class _CoachHomeView extends StatelessWidget {
+  const _CoachHomeView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
       body: SafeArea(
         child: Column(
           children: [
+            // 🔝 same top section style as other subsystems
             MagicGradientHeader(
               title: 'Your AI Coach ✨',
               subtitle: 'Personalized tips just for you!',
-              // bell opens Alerts, long-press opens Settings
               trailingIcon: Icons.notifications_none_rounded,
               onTrailingTap: () {
-                Navigator.of(
-                  context,
-                ).push(MaterialPageRoute(builder: (_) => const AlertsScreen()));
+                final cubit = context.read<CoachCubit>();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider.value(
+                      value: cubit,
+                      child: const AlertsScreen(),
+                    ),
+                  ),
+                );
               },
             ),
 
-            // content
+            // content from CoachCubit
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // title + "See all" -> coach feed
-                    MagicSectionTitle(
-                      "Today's Magic 💖",
-                      trailingIcon: Icons.chevron_right,
-                      onTrailingTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const CoachFeedScreen(),
+              child: BlocBuilder<CoachCubit, CoachState>(
+                builder: (context, state) {
+                  if (state is CoachInitial || state is CoachLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (state is CoachError) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Text(
+                          'Couldn\'t load your coach right now.\n${state.message}',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: BudgetaColors.textMuted),
+                        ),
+                      ),
+                    );
+                  }
+
+                  final loaded = state as CoachLoaded;
+                  final primaryAlert = loaded.alerts.isNotEmpty
+                      ? loaded.alerts.first
+                      : null;
+
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (primaryAlert != null) ...[
+                          _HomeAlertBanner(alert: primaryAlert),
+                          const SizedBox(height: 18),
+                        ],
+
+                        // title + "See all" -> coach feed
+                        MagicSectionTitle(
+                          "Today's Magic 💖",
+                          trailingIcon: Icons.chevron_right,
+                          onTrailingTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const CoachFeedScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Daily tip card (UC: Send Daily Tip)
+                        if (loaded.todayTip != null) ...[
+                          CoachTipCard(
+                            icon: PhosphorIconsFill.sparkle,
+                            iconBg: const Color(0xFFFFEBE6),
+                            title: loaded.todayTip!.title,
+                            label: loaded.todayTip!.label,
+                            description: loaded.todayTip!.body,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const CoachSettingsScreen(),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
+                          const SizedBox(height: 12),
+                        ],
 
-                    // 1) Overspend alert card (like mock)
-                    const CoachTipCard(
-                      icon: FeatherIcons.coffee,
-                      iconBg: Color(0xFFFFE5F0),
-                      title: 'Coffee Spending Alert ☕',
-                      label: 'Alert',
-                      description:
-                          "You’ve spent \$45 on coffee this week! Maybe brew at home and save for your dream vacation?",
-                    ),
-                    const SizedBox(height: 12),
-
-                    // 2) Daily tip card
-                    CoachTipCard(
-                      icon: PhosphorIconsFill.sparkle,
-                      iconBg: const Color(0xFFFFEBE6),
-                      title: 'Morning Motivation ✨',
-                      label: 'Daily Tip',
-                      description:
-                          "Great job tracking your expenses! You’re building amazing financial habits. Keep sparkling!",
-                      onTap: () {
-                        // quick shortcut to settings from the main tip
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const CoachSettingsScreen(),
+                        // Weekly summary card (UC: Weekly Summary)
+                        if (loaded.weeklySummary != null) ...[
+                          CoachTipCard(
+                            icon: FeatherIcons.award,
+                            iconBg: const Color(0xFFFFF1DF),
+                            title: loaded.weeklySummary!.title,
+                            label: loaded.weeklySummary!.label,
+                            description: loaded.weeklySummary!.body,
                           ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
+                          const SizedBox(height: 24),
+                        ],
 
-                    // 3) Weekly win card
-                    const CoachTipCard(
-                      icon: FeatherIcons.award,
-                      iconBg: Color(0xFFFFF1DF),
-                      title: 'Weekly Win 🎉',
-                      label: 'Insight',
-                      description:
-                          "You stayed under budget in 4 out of 5 categories! You’re crushing it, superstar!",
-                    ),
-                    const SizedBox(height: 24),
+                        // Behaviour nudges (UC: adaptive advice / anomalies)
+                        if (loaded.nudges.isNotEmpty) ...[
+                          const MagicSectionTitle('Smart nudges for you'),
+                          const SizedBox(height: 12),
+                          for (final nudge in loaded.nudges) ...[
+                            CoachTipCard(
+                              icon: FeatherIcons.zap,
+                              iconBg: const Color(0xFFE3F2FD),
+                              title: nudge.title,
+                              label: nudge.label,
+                              description: nudge.body,
+                            ),
+                            const SizedBox(height: 10),
+                          ],
+                          const SizedBox(height: 8),
+                        ],
 
-                    // Big encouragement card (mock 2)
-                    const CoachHighlightCard(),
-                  ],
-                ),
+                        // Encouragement card (gamified / motivation)
+                        const CoachHighlightCard(),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -112,6 +179,79 @@ class CoachHomeScreen extends StatelessWidget {
 
       // 👉 app-wide bottom nav (Coach tab = index 3)
       bottomNavigationBar: const BudgetaBottomNav(currentIndex: 3),
+    );
+  }
+}
+
+/// Small alert banner on the home screen showing the most urgent alert.
+class _HomeAlertBanner extends StatelessWidget {
+  final Alert alert;
+  const _HomeAlertBanner({required this.alert});
+
+  IconData _iconForType(AlertType type) {
+    switch (type) {
+      case AlertType.overspent:
+        return FeatherIcons.trendingUp;
+      case AlertType.upcomingBill:
+        return FeatherIcons.calendar;
+      case AlertType.lowBalance:
+        return FeatherIcons.alertTriangle;
+      case AlertType.goalOffTrack:
+        return FeatherIcons.flag;
+    }
+  }
+
+  Color _bgForType(AlertType type) {
+    switch (type) {
+      case AlertType.overspent:
+        return const Color(0xFFFFEBEE);
+      case AlertType.upcomingBill:
+        return const Color(0xFFFFF3CD);
+      case AlertType.lowBalance:
+        return const Color(0xFFE3F2FD);
+      case AlertType.goalOffTrack:
+        return const Color(0xFFFFF0F4);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MagicCard(
+      borderRadius: 18,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: _bgForType(alert.type),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              _iconForType(alert.type),
+              size: 18,
+              color: BudgetaColors.primary,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              alert.title,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: BudgetaColors.deep,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              context.read<CoachCubit>().dismissAlert(alert.id);
+            },
+            child: const Text('Dismiss', style: TextStyle(fontSize: 12)),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -210,7 +350,7 @@ class CoachTipCard extends StatelessWidget {
   }
 }
 
-/// Large “You’re doing amazing!” card at the bottom (mock 2)
+/// Large “You’re doing amazing!” card at the bottom
 class CoachHighlightCard extends StatelessWidget {
   const CoachHighlightCard({super.key});
 

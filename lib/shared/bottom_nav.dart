@@ -2,28 +2,31 @@ import 'package:flutter/material.dart';
 
 import '../app/router.dart';
 import '../app/theme.dart';
-import '../core/models/transaction.dart';
-import '../features/tracking/presentation/screens/add_transaction_screen.dart';
 
 class BudgetaBottomNav extends StatefulWidget {
+  /// The tab that is *logically* active for navigation.
+  /// Used to prevent re-pushing the same route.
   final int currentIndex;
 
-  const BudgetaBottomNav({super.key, required this.currentIndex});
+  /// Optional: force a specific tab to appear selected (colored),
+  /// even if [currentIndex] is different.
+  /// Example: in Recurring screen → currentIndex = -1, highlightIndex = 1.
+  final int? highlightIndex;
+
+  const BudgetaBottomNav({
+    super.key,
+    required this.currentIndex,
+    this.highlightIndex,
+  });
 
   @override
   State<BudgetaBottomNav> createState() => _BudgetaBottomNavState();
 }
 
 class _BudgetaBottomNavState extends State<BudgetaBottomNav> {
-  bool _isAddExpanded = false;
-
   // ---------------- NAVIGATION ----------------
   void _onTapNav(BuildContext context, int index) {
-    // Close add menu when switching tab
-    if (_isAddExpanded) {
-      setState(() => _isAddExpanded = false);
-    }
-
+    // If we are already on that tab (by navigation index), do nothing.
     if (index == widget.currentIndex) return;
 
     switch (index) {
@@ -48,31 +51,12 @@ class _BudgetaBottomNavState extends State<BudgetaBottomNav> {
     }
   }
 
-  Future<void> _openAdd(
-    BuildContext context, {
-    TransactionType? preselectedType,
-  }) async {
-    setState(() => _isAddExpanded = false);
-
-    // 🔥 use the bottom-sheet widget, NOT a full-screen route
-    await showAddTransactionBottomSheet(
-      context,
-      preselectedType: preselectedType,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     const double navHeight = 64;
-    const double extraHeight = 140; // enough space for 2 rows
-
-    final bool isTrackingTab = widget.currentIndex == 1;
-    const double fabRegionHeight = 96;
 
     return SizedBox(
-      height: navHeight +
-          (isTrackingTab ? fabRegionHeight : 30) +
-          (isTrackingTab && _isAddExpanded ? extraHeight : 0),
+      height: navHeight + 20, // small padding above bar
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
@@ -99,7 +83,7 @@ class _BudgetaBottomNavState extends State<BudgetaBottomNav> {
                     _buildNavItem(
                       context,
                       index: 1,
-                      icon: Icons.receipt_long, // nicer tracking icon
+                      icon: Icons.receipt_long, // tracking icon
                       label: 'Tracking',
                     ),
                     _buildNavItem(
@@ -131,52 +115,6 @@ class _BudgetaBottomNavState extends State<BudgetaBottomNav> {
               ),
             ),
           ),
-
-          // --------- Add Menu (only on Tracking tab) ----------
-          if (isTrackingTab && _isAddExpanded)
-            Positioned(
-              bottom: navHeight + 56 + 32, // bar + fab + gap
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildAddRow(
-                    context,
-                    label: 'Add Income',
-                    color: Colors.green.shade600,
-                    icon: Icons.arrow_upward,
-                    onPressed: () => _openAdd(
-                      context,
-                      preselectedType: TransactionType.income,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildAddRow(
-                    context,
-                    label: 'Add Expense',
-                    color: BudgetaColors.primary,
-                    icon: Icons.arrow_downward,
-                    onPressed: () => _openAdd(
-                      context,
-                      preselectedType: TransactionType.expense,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // --------- Center FAB ----------
-          if (isTrackingTab)
-            Positioned(
-              bottom: navHeight + 16,
-              child: FloatingActionButton(
-                heroTag: 'bottom_nav_add',
-                backgroundColor: BudgetaColors.primary,
-                onPressed: () {
-                  setState(() => _isAddExpanded = !_isAddExpanded);
-                },
-                child: Icon(_isAddExpanded ? Icons.close : Icons.add),
-              ),
-            ),
         ],
       ),
     );
@@ -190,7 +128,12 @@ class _BudgetaBottomNavState extends State<BudgetaBottomNav> {
     required IconData icon,
     required String label,
   }) {
-    final bool isSelected = widget.currentIndex == index;
+    // Selected if either:
+    // - this is the active route (currentIndex)
+    // - OR caller asked to highlight it (highlightIndex)
+    final bool isSelected =
+        widget.currentIndex == index || widget.highlightIndex == index;
+
     final Color color = isSelected ? BudgetaColors.deep : Colors.grey;
 
     return Expanded(
@@ -205,58 +148,13 @@ class _BudgetaBottomNavState extends State<BudgetaBottomNav> {
               const SizedBox(height: 2),
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: color,
-                ),
+                style: TextStyle(fontSize: 10, color: color),
                 overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildAddRow(
-    BuildContext context, {
-    required String label,
-    required Color color,
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
-    return Row(
-      children: [
-        Container(
-          margin: const EdgeInsets.only(right: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: BudgetaColors.deep,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-            ),
-          ),
-        ),
-        FloatingActionButton.small(
-          heroTag: 'add_row_$label',
-          backgroundColor: color,
-          onPressed: onPressed,
-          child: Icon(icon),
-        ),
-      ],
     );
   }
 }

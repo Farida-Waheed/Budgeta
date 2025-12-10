@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/models/transaction.dart';
 import '../../../core/models/recurring_rule.dart';
+import '../../../core/models/category_rule.dart';
+import '../../../core/models/tracking_summary.dart';
 import '../data/tracking_repository.dart';
 
 part 'tracking_state.dart';
@@ -19,11 +21,20 @@ class TrackingCubit extends Cubit<TrackingState> {
     try {
       final txs = await repository.getTransactions(userId: userId);
       final rules = await repository.getRecurringRules(userId);
-      emit(TrackingLoaded(transactions: txs, recurringRules: rules));
+      final catRules = await repository.getCategoryRules(userId);
+      emit(
+        TrackingLoaded(
+          transactions: txs,
+          recurringRules: rules,
+          categoryRules: catRules,
+        ),
+      );
     } catch (e) {
       emit(TrackingError(e.toString()));
     }
   }
+
+  // ---------- Transactions ----------
 
   Future<void> addNewTransaction(Transaction transaction) async {
     try {
@@ -52,6 +63,8 @@ class TrackingCubit extends Cubit<TrackingState> {
     }
   }
 
+  // ---------- Recurring ----------
+
   Future<void> addNewRecurringRule(RecurringRule rule) async {
     try {
       await repository.addRecurringRule(rule);
@@ -61,7 +74,6 @@ class TrackingCubit extends Cubit<TrackingState> {
     }
   }
 
-  /// New: edit an existing recurring rule (amount / frequency / category).
   Future<void> updateExistingRecurringRule(RecurringRule rule) async {
     try {
       await repository.updateRecurringRule(rule);
@@ -89,8 +101,65 @@ class TrackingCubit extends Cubit<TrackingState> {
     }
   }
 
-  /// Remove all transactions + recurring rules for this user
-  /// (clears demo data + anything the user added).
+  /// Run auto-posting of recurring rules up to "now".
+  /// Returns the number of created transactions (for snackbar).
+  Future<int> processRecurringForToday() async {
+    try {
+      final created = await repository.processRecurringRules(
+        userId: userId,
+        until: DateTime.now(),
+      );
+      await loadTransactions();
+      return created;
+    } catch (e) {
+      emit(TrackingError(e.toString()));
+      return 0;
+    }
+  }
+
+  // ---------- Category rules (smart categories) ----------
+
+  Future<void> addOrUpdateCategoryRule(CategoryRule rule) async {
+    try {
+      await repository.addOrUpdateCategoryRule(rule);
+      await loadTransactions();
+    } catch (e) {
+      emit(TrackingError(e.toString()));
+    }
+  }
+
+  Future<void> deleteCategoryRule(String ruleId) async {
+    try {
+      await repository.deleteCategoryRule(ruleId);
+      await loadTransactions();
+    } catch (e) {
+      emit(TrackingError(e.toString()));
+    }
+  }
+
+  // ---------- Summary / export / reset ----------
+
+  Future<TrackingSummary> getSummary({DateTime? from, DateTime? to}) {
+    return repository.getSummary(userId: userId, from: from, to: to);
+  }
+
+  Future<String> exportCsv({
+    DateTime? from,
+    DateTime? to,
+    String? categoryId,
+    TransactionType? type,
+  }) {
+    return repository.exportTransactionsCsv(
+      userId: userId,
+      from: from,
+      to: to,
+      categoryId: categoryId,
+      type: type,
+    );
+  }
+
+  /// Remove all transactions + recurring rules + category rules
+  /// for this user (clears demo data + anything the user added).
   Future<void> clearAllUserData() async {
     try {
       await repository.clearAllUserData(userId);

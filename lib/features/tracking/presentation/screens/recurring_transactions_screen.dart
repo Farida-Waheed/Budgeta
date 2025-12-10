@@ -14,10 +14,15 @@ class RecurringTransactionsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
-      // same bottom bar as Tracking tab
-      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 1),
+      // use -1 so tapping Tracking in nav goes back to the main tracking screen
+      bottomNavigationBar: const BudgetaBottomNav(currentIndex: -1),
 
-      // ❌ removed local floatingActionButton to avoid duplicated +
+      // custom + FAB on the right
+      floatingActionButton: _AddRecurringFab(
+        onPressed: () => _openAddOrEditRuleDialog(context),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+
       body: SafeArea(
         child: Column(
           children: [
@@ -454,7 +459,7 @@ class RecurringTransactionsScreen extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Header (now matches TransactionsListScreen layout)
+// Header (matches TransactionsListScreen layout, no back arrow, keeps icon)
 // ---------------------------------------------------------------------------
 
 class _RecurringHeader extends StatelessWidget {
@@ -497,8 +502,48 @@ class _RecurringHeader extends StatelessWidget {
               ],
             ),
           ),
-          // Right side left intentionally empty (no back arrow, no extra icon)
+          SizedBox(width: 12),
+          Icon(Icons.repeat, color: Colors.white, size: 26),
         ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Add FAB (custom + button on the right)
+// ---------------------------------------------------------------------------
+
+class _AddRecurringFab extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _AddRecurringFab({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: 58,
+        height: 58,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            colors: [Color(0xFFFF4F8B), Color(0xFF9A0E3A)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 12,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Icon(Icons.add, color: Colors.white, size: 28),
+        ),
       ),
     );
   }
@@ -596,27 +641,95 @@ class _RecurringRuleTile extends StatelessWidget {
   void _showDeleteConfirmation(BuildContext context) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete recurring rule?'),
-        content: Text(
-          'Are you sure you want to delete this recurring transaction?\n'
-          '${rule.categoryId} • ${rule.amount.toStringAsFixed(2)}',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+      barrierDismissible: true,
+      builder: (ctx) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 40,
+            vertical: 24,
           ),
-          TextButton(
-            onPressed: () {
-              context.read<TrackingCubit>().deleteRecurringRule(rule.id);
-              Navigator.pop(ctx);
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.25),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Delete recurring rule?',
+                    style: TextStyle(
+                      color: BudgetaColors.deep,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Are you sure you want to delete this recurring transaction?\n'
+                    '${rule.categoryId} • ${rule.amount.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: BudgetaColors.deep,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: BudgetaColors.textMuted,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: BudgetaColors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                        ),
+                        onPressed: () {
+                          context.read<TrackingCubit>().deleteRecurringRule(
+                            rule.id,
+                          );
+                          Navigator.pop(ctx);
+                        },
+                        child: const Text(
+                          'Delete',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

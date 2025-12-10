@@ -1,7 +1,7 @@
 // lib/core/models/transaction.dart
 import 'package:flutter/foundation.dart';
 
-enum TransactionType { income, expense }
+enum TransactionType { expense, income }
 
 @immutable
 class Transaction {
@@ -13,11 +13,15 @@ class Transaction {
   final String categoryId;
   final TransactionType type;
 
-  // Optional link to Recurring subsystem
+  /// Link back to recurring rule if auto-created from it.
   final String? recurringRuleId;
 
-  // Optional link to Gamification subsystem
+  /// Used by Challenges / Gamification subsystems (optional).
   final bool isPartOfChallenge;
+
+  /// Path/URI of an attached receipt image (MVP).
+  /// For now we just store a string; real apps would use image_picker + storage.
+  final String? receiptImagePath;
 
   const Transaction({
     required this.id,
@@ -29,9 +33,9 @@ class Transaction {
     this.note,
     this.recurringRuleId,
     this.isPartOfChallenge = false,
+    this.receiptImagePath,
   });
 
-  // Used when editing/update without mutating original
   Transaction copyWith({
     String? id,
     String? userId,
@@ -42,6 +46,7 @@ class Transaction {
     TransactionType? type,
     String? recurringRuleId,
     bool? isPartOfChallenge,
+    String? receiptImagePath,
   }) {
     return Transaction(
       id: id ?? this.id,
@@ -53,6 +58,7 @@ class Transaction {
       type: type ?? this.type,
       recurringRuleId: recurringRuleId ?? this.recurringRuleId,
       isPartOfChallenge: isPartOfChallenge ?? this.isPartOfChallenge,
+      receiptImagePath: receiptImagePath ?? this.receiptImagePath,
     );
   }
 }

@@ -1,33 +1,13 @@
-// lib/features/goals/data/goals_repository.dart
+// lib/features/goals/data/fake_goals_repository.dart
+import 'dart:async';
+
 import '../../../core/models/goal.dart';
+import 'goals_repository.dart';
 
-/// -------- Contract / interface ----------
-abstract class GoalsRepository {
-  // UC: View goals overview
-  Future<List<Goal>> getGoals(String userId);
-
-  // UC: Create / edit goal
-  Future<Goal> createGoal(Goal goal);
-  Future<Goal> updateGoal(Goal goal);
-
-  // UC: Contribute to goal from transaction / manual
-  Future<Goal> addContribution({
-    required String goalId,
-    required double amount,
-  });
-
-  // UC: Get AI-driven projection
-  Future<GoalProjection> getGoalProjection(String goalId);
-}
-
-/// -------- In-memory implementation ----------
-/// Used now to make the app interactive without a real backend.
-/// Later you can add a DB / API repository that also implements
-/// [GoalsRepository] without changing the UI.
-class InMemoryGoalsRepository implements GoalsRepository {
+class FakeGoalsRepository implements GoalsRepository {
   final List<Goal> _store = [];
 
-  InMemoryGoalsRepository() {
+  FakeGoalsRepository() {
     final now = DateTime.now();
     _store.addAll([
       Goal(
@@ -58,31 +38,29 @@ class InMemoryGoalsRepository implements GoalsRepository {
   }
 
   @override
-  Future<List<Goal>> getGoals(String userId) async {
+  Future<List<Goal>> getGoals(String userId) {
     final list = _store.where((g) => g.userId == userId).toList();
-
-    // Primary first, then by creation date
+    // primary goal first
     list.sort((a, b) {
       if (a.isPrimary == b.isPrimary) {
         return a.createdAt.compareTo(b.createdAt);
       }
       return a.isPrimary ? -1 : 1;
     });
-
     return _delay(list);
   }
 
   @override
-  Future<Goal> createGoal(Goal goal) async {
+  Future<Goal> createGoal(Goal goal) {
     _store.add(goal);
     return _delay(goal);
   }
 
   @override
-  Future<Goal> updateGoal(Goal goal) async {
-    final idx = _store.indexWhere((g) => g.id == goal.id);
-    if (idx != -1) {
-      _store[idx] = goal;
+  Future<Goal> updateGoal(Goal goal) {
+    final index = _store.indexWhere((g) => g.id == goal.id);
+    if (index != -1) {
+      _store[index] = goal;
     }
     return _delay(goal);
   }
@@ -92,12 +70,11 @@ class InMemoryGoalsRepository implements GoalsRepository {
     required String goalId,
     required double amount,
   }) async {
-    final idx = _store.indexWhere((g) => g.id == goalId);
-    if (idx == -1) {
+    final index = _store.indexWhere((g) => g.id == goalId);
+    if (index == -1) {
       throw Exception('Goal not found');
     }
-
-    final g = _store[idx];
+    final g = _store[index];
     final updated = Goal(
       id: g.id,
       userId: g.userId,
@@ -109,14 +86,13 @@ class InMemoryGoalsRepository implements GoalsRepository {
       projection: g.projection,
       isPrimary: g.isPrimary,
     );
-    _store[idx] = updated;
+    _store[index] = updated;
     return _delay(updated);
   }
 
   @override
   Future<GoalProjection> getGoalProjection(String goalId) async {
     final goal = _store.firstWhere((g) => g.id == goalId);
-
     final remaining = goal.targetAmount - goal.currentAmount;
     if (remaining <= 0) {
       return _delay(
@@ -127,7 +103,7 @@ class InMemoryGoalsRepository implements GoalsRepository {
       );
     }
 
-    // Very simple “AI”: assume we want to finish in ~6 months
+    // super simple “AI”: suggest finishing in 6 months
     const months = 6;
     final suggested = remaining / months;
     final completion = DateTime.now().add(const Duration(days: 30 * months));

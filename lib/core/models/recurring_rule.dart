@@ -12,17 +12,24 @@ class RecurringRule {
   final DateTime? endDate;
   final RecurringFrequency frequency;
   final String categoryId;
+
+  /// Whether the rule is currently active.
   final bool isActive;
+
+  /// Next due date for auto-posting.
+  /// If null, the system should treat [startDate] as nextDueDate.
+  final DateTime? nextDueDate;
 
   const RecurringRule({
     required this.id,
     required this.userId,
     required this.amount,
     required this.startDate,
-    this.endDate,
     required this.frequency,
     required this.categoryId,
+    this.endDate,
     this.isActive = true,
+    this.nextDueDate,
   });
 
   RecurringRule copyWith({
@@ -34,6 +41,7 @@ class RecurringRule {
     RecurringFrequency? frequency,
     String? categoryId,
     bool? isActive,
+    DateTime? nextDueDate,
   }) {
     return RecurringRule(
       id: id ?? this.id,
@@ -44,6 +52,7 @@ class RecurringRule {
       frequency: frequency ?? this.frequency,
       categoryId: categoryId ?? this.categoryId,
       isActive: isActive ?? this.isActive,
+      nextDueDate: nextDueDate ?? this.nextDueDate,
     );
   }
 }

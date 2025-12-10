@@ -1,3 +1,4 @@
+// lib/features/tracking/presentation/screens/edit_transaction_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,15 +21,9 @@ class EditTransactionScreen extends StatelessWidget {
           alignment: Alignment.bottomCenter,
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: 500,
-                maxHeight: MediaQuery.of(context).size.height * 0.7,
-              ),
-              child: EditTransactionSheetContent(
-                transaction: transaction,
-                onClose: () => Navigator.of(context).pop(),
-              ),
+            child: EditTransactionSheetContent(
+              transaction: transaction,
+              onClose: () => Navigator.of(context).pop(),
             ),
           ),
         ),
@@ -37,6 +32,7 @@ class EditTransactionScreen extends StatelessWidget {
   }
 }
 
+/// The actual card / sheet that matches the AddTransaction layout.
 class EditTransactionSheetContent extends StatefulWidget {
   final Transaction transaction;
   final VoidCallback? onClose;
@@ -55,28 +51,39 @@ class EditTransactionSheetContent extends StatefulWidget {
 class _EditTransactionSheetContentState
     extends State<EditTransactionSheetContent> {
   final _formKey = GlobalKey<FormState>();
+
   late TextEditingController _amountController;
   late TextEditingController _noteController;
+
   late DateTime _date;
   late TransactionType _type;
   late String _selectedCategoryId;
 
   String? _suggestedCategoryId;
 
+  bool _receiptAttached = false;
+  String? _receiptImagePath;
+
   @override
   void initState() {
     super.initState();
+
     _amountController = TextEditingController(
       text: widget.transaction.amount.toStringAsFixed(2),
     );
     _noteController = TextEditingController(
       text: widget.transaction.note ?? '',
     );
+
     _date = widget.transaction.date;
     _type = widget.transaction.type;
     _selectedCategoryId = widget.transaction.categoryId;
 
+    _receiptImagePath = widget.transaction.receiptImagePath;
+    _receiptAttached = _receiptImagePath != null;
+
     _noteController.addListener(_updateSuggestedCategory);
+    _updateSuggestedCategory();
   }
 
   @override
@@ -90,20 +97,15 @@ class _EditTransactionSheetContentState
     final note = _noteController.text.toLowerCase();
     String? suggestion;
 
-    if (note.contains('rent')) {
-      suggestion = 'rent';
-    } else if (note.contains('coffee') || note.contains('starbucks')) {
-      suggestion = 'coffee';
-    } else if (note.contains('salary') ||
-        note.contains('pay') ||
-        note.contains('income')) {
-      suggestion = 'salary';
-    } else if (note.contains('uber') ||
-        note.contains('bus') ||
-        note.contains('taxi')) {
-      suggestion = 'transport';
-    } else {
-      suggestion = null;
+    final state = context.read<TrackingCubit>().state;
+    if (state is TrackingLoaded) {
+      for (final rule in state.categoryRules) {
+        if (!rule.isActive) continue;
+        if (note.contains(rule.pattern.toLowerCase())) {
+          suggestion = rule.categoryId;
+          break;
+        }
+      }
     }
 
     if (suggestion != _suggestedCategoryId) {
@@ -122,11 +124,14 @@ class _EditTransactionSheetContentState
       userId: widget.transaction.userId,
       amount: amount,
       date: _date,
-      note: _noteController.text.isEmpty ? null : _noteController.text,
+      note: _noteController.text.isEmpty
+          ? (_receiptAttached ? 'Receipt attached' : null)
+          : _noteController.text,
       categoryId: _selectedCategoryId,
       type: _type,
       recurringRuleId: widget.transaction.recurringRuleId,
       isPartOfChallenge: widget.transaction.isPartOfChallenge,
+      receiptImagePath: _receiptImagePath,
     );
 
     await trackingCubit.updateExistingTransaction(updated);
@@ -135,14 +140,40 @@ class _EditTransactionSheetContentState
 
   void _applySuggestedCategory() {
     if (_suggestedCategoryId == null) return;
+
+    // Prevent weird case: expense but suggested salary
+    if (_type == TransactionType.expense && _suggestedCategoryId == 'salary') {
+      return;
+    }
+
     setState(() => _selectedCategoryId = _suggestedCategoryId!);
+  }
+
+  void _toggleReceipt() {
+    setState(() {
+      _receiptAttached = !_receiptAttached;
+      if (_receiptAttached) {
+        _receiptImagePath ??=
+            'receipt_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      } else {
+        _receiptImagePath = null;
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _receiptAttached ? 'Receipt marked as attached.' : 'Receipt removed.',
+        ),
+        duration: const Duration(seconds: 1),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final isExpense = _type == TransactionType.expense;
 
-    // same field theme as AddTransaction sheet
     final fieldTheme = Theme.of(context).copyWith(
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -160,53 +191,29 @@ class _EditTransactionSheetContentState
     );
 
     return Material(
-      color: BudgetaColors.backgroundLight,
+      color: Colors.white,
       borderRadius: BorderRadius.circular(32),
-      elevation: 8,
+      elevation: 10,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
-        child: SizedBox(
-          width: double.infinity,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 10),
-              // top handle
-              Container(
-                width: 60,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.35),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 14),
-              // header row
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                // Header row
+                Row(
                   children: [
                     const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Edit Transaction ✨',
-                            style: TextStyle(
-                              color: BudgetaColors.deep,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Fine-tune the details any time',
-                            style: TextStyle(
-                              color: BudgetaColors.textMuted,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Edit Transaction ✨',
+                        style: TextStyle(
+                          color: BudgetaColors.deep,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     IconButton(
@@ -216,212 +223,233 @@ class _EditTransactionSheetContentState
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white, // inner white card like Add sheet
-                      borderRadius: BorderRadius.circular(26),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Theme(
-                        data: fieldTheme,
-                        child: Form(
-                          key: _formKey,
-                          child: ListView(
+                const SizedBox(height: 16),
+
+                // Form content
+                Expanded(
+                  child: Theme(
+                    data: fieldTheme,
+                    child: Form(
+                      key: _formKey,
+                      child: ListView(
+                        shrinkWrap: true,
+                        children: [
+                          // Expense / Income segmented control
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: BudgetaColors.backgroundLight,
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Row(
+                              children: [
+                                _TypeSegmentEdit(
+                                  label: 'Expense',
+                                  selected: isExpense,
+                                  onTap: () {
+                                    setState(() {
+                                      _type = TransactionType.expense;
+                                      if (_selectedCategoryId == 'salary') {
+                                        _selectedCategoryId = 'food';
+                                      }
+                                    });
+                                  },
+                                ),
+                                const SizedBox(width: 6),
+                                _TypeSegmentEdit(
+                                  label: 'Income',
+                                  selected: !isExpense,
+                                  onTap: () {
+                                    setState(() {
+                                      _type = TransactionType.income;
+                                      _selectedCategoryId = 'salary';
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+
+                          // Amount
+                          Text(
+                            'Amount',
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  color: BudgetaColors.deep,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _amountController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: const InputDecoration(
+                              prefixIcon: Icon(Icons.attach_money_rounded),
+                              hintText: '0.00',
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Enter amount';
+                              }
+                              final parsed = double.tryParse(value);
+                              if (parsed == null || parsed <= 0) {
+                                return 'Enter a valid amount';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 18),
+
+                          // Category
+                          Text(
+                            'Category',
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  color: BudgetaColors.deep,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          const SizedBox(height: 6),
+                          CategoryChipList(
+                            selectedCategoryId: _selectedCategoryId,
+                            onCategorySelected: (id) {
+                              if (id == null) return;
+                              setState(() => _selectedCategoryId = id);
+                            },
+                            incomeOnly: _type == TransactionType.income,
+                            hideIncomeInExpense:
+                                _type == TransactionType.expense,
+                            showAllChip: false,
+                          ),
+
+                          const SizedBox(height: 18),
+
+                          // Description
+                          Text(
+                            'Description (Optional)',
+                            style: Theme.of(context).textTheme.labelLarge
+                                ?.copyWith(
+                                  color: BudgetaColors.deep,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _noteController,
+                            decoration: const InputDecoration(
+                              hintText: "What's this for?",
+                              prefixIcon: Icon(Icons.edit_note_outlined),
+                            ),
+                          ),
+
+                          if (_suggestedCategoryId != null) ...[
+                            const SizedBox(height: 10),
+                            _buildSmartCategorySuggestion(),
+                          ],
+
+                          const SizedBox(height: 18),
+
+                          // Date & Receipt row
+                          Row(
                             children: [
-                              // Expense / Income segmented control
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: BudgetaColors.backgroundLight,
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
-                                child: Row(
-                                  children: [
-                                    _TypeSegmentEdit(
-                                      label: 'Expense',
-                                      selected: isExpense,
-                                      onTap: () {
-                                        setState(() {
-                                          _type = TransactionType.expense;
-                                        });
-                                      },
-                                    ),
-                                    const SizedBox(width: 6),
-                                    _TypeSegmentEdit(
-                                      label: 'Income',
-                                      selected: !isExpense,
-                                      onTap: () {
-                                        setState(() {
-                                          _type = TransactionType.income;
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              const SizedBox(height: 20),
-
-                              // Amount label + field
-                              Text(
-                                'Amount',
-                                style: Theme.of(context).textTheme.labelLarge
-                                    ?.copyWith(
-                                      color: BudgetaColors.deep,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
-                              const SizedBox(height: 6),
-                              TextFormField(
-                                controller: _amountController,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                      decimal: true,
-                                    ),
-                                decoration: const InputDecoration(
-                                  prefixIcon: Icon(Icons.attach_money_rounded),
-                                  hintText: '0.00',
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Enter amount';
-                                  }
-                                  final parsed = double.tryParse(value);
-                                  if (parsed == null || parsed <= 0) {
-                                    return 'Enter a valid amount';
-                                  }
-                                  return null;
-                                },
-                              ),
-
-                              const SizedBox(height: 16),
-
-                              // Note / description
-                              Text(
-                                'Description (Optional)',
-                                style: Theme.of(context).textTheme.labelLarge
-                                    ?.copyWith(
-                                      color: BudgetaColors.deep,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
-                              const SizedBox(height: 6),
-                              TextFormField(
-                                controller: _noteController,
-                                decoration: const InputDecoration(
-                                  hintText: 'What\'s this for?',
-                                  prefixIcon: Icon(Icons.edit_note_outlined),
-                                ),
-                              ),
-
-                              const SizedBox(height: 10),
-
-                              if (_suggestedCategoryId != null)
-                                _buildSmartCategorySuggestion(),
-
-                              const SizedBox(height: 18),
-
-                              // Category chips
-                              Text(
-                                'Category',
-                                style: Theme.of(context).textTheme.labelLarge
-                                    ?.copyWith(
-                                      color: BudgetaColors.deep,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
-                              const SizedBox(height: 6),
-                              CategoryChipList(
-                                selectedCategoryId: _selectedCategoryId,
-                                onCategorySelected: (id) {
-                                  if (id == null) return;
-                                  setState(() => _selectedCategoryId = id);
-                                },
-                              ),
-
-                              const SizedBox(height: 18),
-
-                              // Date row (kept same as before)
-                              ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: const Icon(
-                                  Icons.calendar_today_outlined,
-                                ),
-                                title: const Text('Date'),
-                                subtitle: Text(
-                                  _date.toLocal().toString().split(' ').first,
-                                ),
-                                onTap: () async {
-                                  final picked = await showDatePicker(
-                                    context: context,
-                                    initialDate: _date,
-                                    firstDate: DateTime(2020),
-                                    lastDate: DateTime(2100),
-                                  );
-                                  if (picked != null) {
-                                    setState(() => _date = picked);
-                                  }
-                                },
-                              ),
-
-                              const SizedBox(height: 24),
-
-                              SizedBox(
-                                height: 50,
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFF9A0E3A),
-                                        Color(0xFFFF4F8B),
-                                      ],
-                                      begin: Alignment.centerLeft,
-                                      end: Alignment.centerRight,
-                                    ),
-                                    borderRadius: BorderRadius.circular(24),
+                              Expanded(
+                                child: ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const Icon(
+                                    Icons.calendar_month_rounded,
                                   ),
-                                  child: TextButton(
-                                    onPressed: _save,
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(24),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Save changes',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                  title: const Text('Date'),
+                                  subtitle: Text(
+                                    _date.toLocal().toString().split(' ').first,
+                                  ),
+                                  onTap: () async {
+                                    final picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: _date,
+                                      firstDate: DateTime(2020),
+                                      lastDate: DateTime(2100),
+                                    );
+                                    if (picked != null) {
+                                      setState(() => _date = picked);
+                                    }
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: Icon(
+                                    _receiptAttached
+                                        ? Icons.receipt_long_rounded
+                                        : Icons.receipt_long_outlined,
+                                    color: _receiptAttached
+                                        ? BudgetaColors.primary
+                                        : Colors.grey,
+                                  ),
+                                  title: const Text('Receipt'),
+                                  subtitle: Text(
+                                    _receiptAttached
+                                        ? 'Attached'
+                                        : 'Not attached',
+                                    style: TextStyle(
+                                      color: _receiptAttached
+                                          ? BudgetaColors.primary
+                                          : Colors.grey,
                                     ),
                                   ),
+                                  onTap: _toggleReceipt,
                                 ),
                               ),
                             ],
                           ),
-                        ),
+
+                          const SizedBox(height: 22),
+
+                          // Save button
+                          SizedBox(
+                            height: 50,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF9A0E3A),
+                                    Color(0xFFFF4F8B),
+                                  ],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                ),
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: TextButton(
+                                onPressed: _save,
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Save changes',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -429,6 +457,11 @@ class _EditTransactionSheetContentState
   }
 
   Widget _buildSmartCategorySuggestion() {
+    // avoid weird suggestion
+    if (_type == TransactionType.expense && _suggestedCategoryId == 'salary') {
+      return const SizedBox.shrink();
+    }
+
     final displayName = _suggestedCategoryId!.toUpperCase();
     final isSelected = _selectedCategoryId == _suggestedCategoryId;
 
@@ -458,7 +491,7 @@ class _EditTransactionSheetContentState
   }
 }
 
-/// Helper to open as bottom-sheet over existing screen.
+/// Helper to open as bottom-sheet over existing screen (like Add).
 Future<void> showEditTransactionBottomSheet(
   BuildContext context, {
   required Transaction transaction,
@@ -474,18 +507,14 @@ Future<void> showEditTransactionBottomSheet(
           left: 8,
           right: 8,
           bottom: mq.viewInsets.bottom + 8,
-          top: mq.size.height * 0.3,
+          top: mq.size.height * 0.25,
         ),
-        child: EditTransactionSheetContent(
-          transaction: transaction,
-          onClose: () => Navigator.of(ctx).pop(),
-        ),
+        child: EditTransactionScreen(transaction: transaction),
       );
     },
   );
 }
 
-/// Local copy of the segmented control pill used for Expense / Income.
 class _TypeSegmentEdit extends StatelessWidget {
   final String label;
   final bool selected;
