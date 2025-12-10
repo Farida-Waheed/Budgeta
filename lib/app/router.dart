@@ -20,6 +20,9 @@ import '../features/coach/presentation/screens/coach_home_screen.dart';
 import '../features/goals/presentation/screens/goals_home_screen.dart';
 import '../features/community/presentation/screens/community_feed_screen.dart';
 
+// GAMIFICATION / CHALLENGES
+import '../features/gamification/presentation/screens/challenges_screen.dart';
+
 // SETTINGS
 import '../features/settings/presentation/screens/settings_screen.dart';
 
@@ -88,14 +91,6 @@ class AppRouter {
         );
 
       case AppRoutes.addTransaction:
-        // Can be called with:
-        // Navigator.pushNamed(context, AppRoutes.addTransaction);
-        // or with a preselected type:
-        // Navigator.pushNamed(
-        //   context,
-        //   AppRoutes.addTransaction,
-        //   arguments: TransactionType.income,
-        // );
         TransactionType? preselected;
         final args = settings.arguments;
         if (args is TransactionType) {
@@ -105,14 +100,11 @@ class AppRouter {
         }
 
         return MaterialPageRoute(
-          builder: (_) => AddTransactionScreen(
-            preselectedType: preselected,
-          ),
+          builder: (_) => AddTransactionScreen(preselectedType: preselected),
           settings: settings,
         );
 
       case AppRoutes.editTransaction:
-        // Expect: Navigator.pushNamed(context, AppRoutes.editTransaction, arguments: tx);
         final args = settings.arguments;
         if (args is! Transaction) {
           return _errorRoute('EditTransactionScreen needs a Transaction.');
@@ -151,7 +143,7 @@ class AppRouter {
 
       case AppRoutes.challenges:
         return MaterialPageRoute(
-          builder: (_) => const _ChallengesPlaceholderScreen(),
+          builder: (_) => const ChallengesScreen(),
           settings: settings,
         );
 
@@ -180,35 +172,6 @@ class AppRouter {
       builder: (_) => Scaffold(
         appBar: AppBar(title: const Text('Routing error')),
         body: Center(child: Text(message)),
-      ),
-    );
-  }
-}
-
-/// ----------------------
-/// CHALLENGES PLACEHOLDER
-/// (UI can be swapped later)
-/// ----------------------
-class _ChallengesPlaceholderScreen extends StatelessWidget {
-  const _ChallengesPlaceholderScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: BudgetaColors.background,
-      appBar: AppBar(
-        title: const Text('Challenges'),
-        centerTitle: true,
-      ),
-      body: const Center(
-        child: Text(
-          'Challenges coming soon…',
-          style: TextStyle(
-            color: BudgetaColors.deep,
-            fontSize: 16,
-          ),
-          textAlign: TextAlign.center,
-        ),
       ),
     );
   }
