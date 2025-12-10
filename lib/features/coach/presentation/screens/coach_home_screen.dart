@@ -13,7 +13,6 @@ import '../../../../shared/bottom_nav.dart';
 import '../../../../core/models/alert.dart';
 
 import '../../state/coach_cubit.dart';
-import '../../data/fake_coach_repository.dart';
 
 import 'alerts_screen.dart';
 import 'coach_feed_screen.dart';
@@ -24,12 +23,8 @@ class CoachHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          CoachCubit(repository: FakeCoachRepository(), userId: 'demo-user')
-            ..loadCoachHome(),
-      child: const _CoachHomeView(),
-    );
+    // CoachCubit is provided globally in main.dart
+    return const _CoachHomeView();
   }
 }
 
@@ -184,7 +179,7 @@ class _CoachHomeView extends StatelessWidget {
 
                         const SizedBox(height: 20),
 
-                        const _CoachHighlightCard(), // 🔥 updated UI here
+                        const _CoachHighlightCard(),
                       ],
                     ),
                   );
@@ -467,7 +462,7 @@ class _CoachTipCard extends StatelessWidget {
 }
 
 //
-// 🔥 UPDATED HIGHLIGHT CARD — Bigger & matches screenshot
+// Highlight Card
 //
 class _CoachHighlightCard extends StatelessWidget {
   const _CoachHighlightCard();
@@ -477,9 +472,7 @@ class _CoachHighlightCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
       margin: const EdgeInsets.only(bottom: 24),
-      constraints: const BoxConstraints(
-        minHeight: 170, // 🔥 bigger like the design
-      ),
+      constraints: const BoxConstraints(minHeight: 170),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF0F4),
         borderRadius: BorderRadius.circular(28),
@@ -488,7 +481,6 @@ class _CoachHighlightCard extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Icon
           Container(
             width: 48,
             height: 48,
@@ -503,9 +495,7 @@ class _CoachHighlightCard extends StatelessWidget {
               color: BudgetaColors.primary,
             ),
           ),
-
           const SizedBox(height: 18),
-
           const Text(
             "You're doing amazing! 🌟",
             textAlign: TextAlign.center,
@@ -515,9 +505,7 @@ class _CoachHighlightCard extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-
           const SizedBox(height: 10),
-
           const Text(
             "Every small step moves you closer to your goals!",
             textAlign: TextAlign.center,

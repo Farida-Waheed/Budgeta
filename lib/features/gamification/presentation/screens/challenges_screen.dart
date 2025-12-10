@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../shared/bottom_nav.dart';
-import '../../data/gamification_repository_impl.dart';
 import '../../state/gamification_cubit.dart';
 import '../../../../core/models/challenge.dart';
 import '../widgets/challenge_progress_card.dart';
@@ -17,13 +16,8 @@ class ChallengesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => GamificationCubit(
-        InMemoryGamificationRepository(),
-        userId: 'demo-user', // plug real user id later
-      )..load(),
-      child: const _ChallengesView(),
-    );
+    // ✅ No local BlocProvider here anymore, we use the global one from main.dart
+    return const _ChallengesView();
   }
 }
 
@@ -240,6 +234,7 @@ void _showChallengeDialog(BuildContext context, Challenge challenge) {
   );
 }
 
+// _ChallengeDialogCard + _Header stay EXACTLY as you pasted (UI untouched)
 class _ChallengeDialogCard extends StatelessWidget {
   const _ChallengeDialogCard({
     required this.challenge,
@@ -280,7 +275,6 @@ class _ChallengeDialogCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title + subtitle
             Text(
               challenge.name,
               style: theme.titleLarge?.copyWith(
@@ -297,7 +291,6 @@ class _ChallengeDialogCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-
             if (challenge.targetAmount != null)
               Text(
                 'Target: ${challenge.targetAmount!.toStringAsFixed(0)} EGP',
@@ -307,7 +300,6 @@ class _ChallengeDialogCard extends StatelessWidget {
                 ),
               ),
             if (challenge.targetAmount != null) const SizedBox(height: 4),
-
             Text(
               'Duration: ${challenge.durationDays} days',
               style: theme.bodySmall?.copyWith(
@@ -316,8 +308,6 @@ class _ChallengeDialogCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-
-            // Progress bar (same vibe as list card)
             ClipRRect(
               borderRadius: BorderRadius.circular(999),
               child: LinearProgressIndicator(
@@ -330,8 +320,6 @@ class _ChallengeDialogCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-
-            // Progress labels (fixed yellow → deep color)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -356,8 +344,6 @@ class _ChallengeDialogCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 14),
-
-            // Buttons – same color vibes as challenge card / app theme
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -452,7 +438,6 @@ class _Header extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Top row like your Figma (title + profile/achievements icon)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -485,7 +470,6 @@ class _Header extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          // Weekly feedback card – similar style to bottom pink cards in designs
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),

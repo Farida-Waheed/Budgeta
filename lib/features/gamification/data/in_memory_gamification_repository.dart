@@ -1,4 +1,4 @@
-// lib/features/gamification/data/gamification_repository_impl.dart
+// lib/features/gamification/data/in_memory_gamification_repository.dart
 import 'dart:math';
 
 import '../../../core/models/badge.dart';

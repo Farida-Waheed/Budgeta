@@ -1,11 +1,9 @@
-// lib/features/community/presentation/screens/community_feed_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../shared/bottom_nav.dart';
 import '../../../../core/models/group_challenge.dart';
-import '../../data/community_repository_impl.dart';
 import '../../state/community_cubit.dart';
 import '../widgets/post_card.dart';
 import 'create_post_screen.dart';
@@ -18,14 +16,8 @@ class CommunityFeedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => CommunityCubit(
-        repository: InMemoryCommunityRepository(),
-        userId: 'demo-user',
-        userName: 'You',
-      )..load(),
-      child: const _CommunityView(),
-    );
+    // CommunityCubit is provided globally from main.dart
+    return const _CommunityView();
   }
 }
 
@@ -189,6 +181,8 @@ class _CommunityView extends StatelessWidget {
   }
 }
 
+// _Header and _GroupChallengeTeaser unchanged
+// (keeping exactly your UI as you pasted)
 class _Header extends StatelessWidget {
   const _Header({
     required this.onTapLeaderboard,
@@ -213,7 +207,6 @@ class _Header extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -243,7 +236,6 @@ class _Header extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          // Pills like the Figma (Top 10%, Level 5)
           Container(
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.08),

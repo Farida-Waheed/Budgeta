@@ -14,7 +14,6 @@ import '../../../../shared/bottom_nav.dart';
 // models + state
 import '../../../../core/models/goal.dart';
 import '../../state/goals_cubit.dart';
-import '../../data/goals_repository.dart';
 
 // local widgets/screens
 import '../widgets/goal_card.dart';
@@ -25,12 +24,8 @@ class GoalsHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          GoalsCubit(repository: InMemoryGoalsRepository(), userId: 'demo-user')
-            ..loadGoals(),
-      child: const _GoalsHomeView(),
-    );
+    // ✅ Use the globally provided GoalsCubit from main.dart
+    return const _GoalsHomeView();
   }
 }
 

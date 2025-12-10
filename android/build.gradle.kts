@@ -1,11 +1,10 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.google.gms:google-services:4.4.4'
-    }
+import org.gradle.api.file.Directory
+
+plugins {
+    id("com.android.application") apply false
+    id("com.android.library") apply false
+    id("org.jetbrains.kotlin.android") apply false
+    id("com.google.gms.google-services") version "4.4.2" apply false
 }
 
 allprojects {
