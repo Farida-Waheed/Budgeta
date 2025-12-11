@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 
 import '../../../../app/theme.dart';
-import '../../../../core/widgets/gradient_header.dart';
 import '../../../../shared/bottom_nav.dart';
 
 class CoachSettingsScreen extends StatefulWidget {
@@ -24,14 +23,49 @@ class _CoachSettingsScreenState extends State<CoachSettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const MagicGradientHeader(
-              title: 'Coach Settings ⚙️',
-              subtitle: 'Tell your coach how to support you.',
+      body: Column(
+        children: [
+          // 🌈 Big gradient header, same style as other coach screens
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 44, // gradient goes behind status bar
+              bottom: 26,
             ),
-            Expanded(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [BudgetaColors.primary, BudgetaColors.deep],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Coach Settings ⚙️',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Tell your coach how to support you.',
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+
+          // 📋 Content under SafeArea (top: false so gradient stays visible)
+          Expanded(
+            child: SafeArea(
+              top: false,
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
                 children: [
@@ -88,7 +122,7 @@ class _CoachSettingsScreenState extends State<CoachSettingsScreen> {
                         : _tone < 0.66
                         ? 'Balanced: kind but honest.'
                         : 'Tough love: very direct.',
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: BudgetaColors.textMuted,
                       fontSize: 13,
                     ),
@@ -104,8 +138,8 @@ class _CoachSettingsScreenState extends State<CoachSettingsScreen> {
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       bottomNavigationBar: const BudgetaBottomNav(currentIndex: 3),
     );

@@ -39,38 +39,41 @@ class DashboardHomeScreen extends StatelessWidget {
       floatingActionButton: const _AddTransactionFab(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
-      body: SafeArea(
-        child: BlocBuilder<DashboardCubit, DashboardState>(
-          builder: (context, state) {
-            if (state is DashboardLoading || state is DashboardInitial) {
-              return const Center(child: CircularProgressIndicator());
-            }
+      // 🟣 Let the gradient header paint behind the status bar
+      body: BlocBuilder<DashboardCubit, DashboardState>(
+        builder: (context, state) {
+          if (state is DashboardLoading || state is DashboardInitial) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            if (state is DashboardError) {
-              return Center(child: Text('Error: ${state.message}'));
-            }
+          if (state is DashboardError) {
+            return Center(child: Text('Error: ${state.message}'));
+          }
 
-            if (state is! DashboardLoaded) {
-              return const SizedBox.shrink();
-            }
+          if (state is! DashboardLoaded) {
+            return const SizedBox.shrink();
+          }
 
-            final view = state.view;
-            final cubit = context.read<DashboardCubit>();
+          final view = state.view;
+          final cubit = context.read<DashboardCubit>();
 
-            // Recent activity from TrackingCubit
-            final trackingState = context.watch<TrackingCubit>().state;
-            List<Transaction> recent = [];
-            if (trackingState is TrackingLoaded) {
-              recent = List<Transaction>.from(
-                trackingState.transactions,
-              ).take(5).toList();
-            }
+          // Recent activity from TrackingCubit
+          final trackingState = context.watch<TrackingCubit>().state;
+          List<Transaction> recent = [];
+          if (trackingState is TrackingLoaded) {
+            recent = List<Transaction>.from(
+              trackingState.transactions,
+            ).take(5).toList();
+          }
 
-            // Header is fixed, content scrolls under it
-            return Column(
-              children: [
-                _DashboardHeader(view: view),
-                Expanded(
+          // Header is fixed, content scrolls under it
+          return Column(
+            children: [
+              _DashboardHeader(view: view),
+              Expanded(
+                child: SafeArea(
+                  top:
+                      false, // keep bottom in safe area, let header own the top
                   child: RefreshIndicator(
                     onRefresh: () => cubit.refresh(),
                     child: ListView(
@@ -236,10 +239,10 @@ class DashboardHomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-              ],
-            );
-          },
-        ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -307,7 +310,12 @@ class _DashboardHeader extends StatelessWidget {
         ),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 26),
+      padding: const EdgeInsets.fromLTRB(
+        20,
+        44, // ⬅️ bigger so gradient fills behind status bar
+        20,
+        26,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

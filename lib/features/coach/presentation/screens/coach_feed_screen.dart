@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 
 import '../../../../app/theme.dart';
-import '../../../../core/widgets/gradient_header.dart';
 import '../../../../core/widgets/card.dart';
 import '../../../../core/widgets/section_title.dart';
 import '../../../../core/models/coaching_tip.dart';
@@ -14,7 +13,6 @@ class CoachFeedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Dummy in-memory list; later you can load from repository / cubit.
     final List<CoachingTip> tips = [
       CoachingTip(
         id: 't1',
@@ -47,16 +45,69 @@ class CoachFeedScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const MagicGradientHeader(
-              title: 'Coach Feed 💬',
-              subtitle: 'Your saved tips & insights.',
+      body: Column(
+        children: [
+          // 🌈 BIG GRADIENT HEADER (with back arrow, matching CoachHome theme)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(
+              left: 12,
+              right: 20,
+              top: 44, // gradient covers status bar
+              bottom: 30,
             ),
-            Expanded(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [BudgetaColors.primary, BudgetaColors.deep],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Coach Feed 💬',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20, // match CoachHome
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Your saved tips & insights.',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12, // match CoachHome subtitle
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ===== BODY =====
+          Expanded(
+            child: SafeArea(
+              top: false, // Keep gradient at top
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                physics: const BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -67,8 +118,8 @@ class CoachFeedScreen extends StatelessWidget {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       bottomNavigationBar: const BudgetaBottomNav(currentIndex: 3),
     );

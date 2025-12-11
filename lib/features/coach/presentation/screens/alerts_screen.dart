@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_feather_icons/flutter_feather_icons.dart';
 
 import '../../../../app/theme.dart';
-import '../../../../core/widgets/gradient_header.dart';
 import '../../../../core/widgets/card.dart';
 import '../../../../core/widgets/section_title.dart';
 import '../../../../core/models/alert.dart';
@@ -45,11 +44,72 @@ class AlertsScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const _AlertsHeader(), // ⬅️ bigger header card
-            Expanded(
+      body: Column(
+        children: [
+          // 🌈 Bigger gradient header, with back arrow, matching CoachHome
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(
+              left: 12,
+              right: 20,
+              top: 44, // gradient goes behind status bar
+              bottom: 30,
+            ),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [BudgetaColors.primary, BudgetaColors.deep],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Smart Alerts 🔔',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20, // match CoachHome title size
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Gentle nudges before things slip.',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12, // match CoachHome subtitle size
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.notifications_none_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ],
+            ),
+          ),
+
+          // 📜 Content area
+          Expanded(
+            child: SafeArea(
+              top: false, // keep gradient at very top
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
                 child: Column(
@@ -62,63 +122,10 @@ class AlertsScreen extends StatelessWidget {
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 3),
-    );
-  }
-}
-
-/// Bigger gradient header for Alerts (matches other subsystems)
-class _AlertsHeader extends StatelessWidget {
-  const _AlertsHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF9A0E3A), Color(0xFFFF4F8B)],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 26, 12, 30),
-      constraints: const BoxConstraints(minHeight: 110),
-      child: const Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Smart Alerts 🔔',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22, // was 20
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: 6), // was 4
-                Text(
-                  'Gentle nudges before things slip.',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14, // was 13
-                  ),
-                ),
-              ],
-            ),
           ),
-          SizedBox(width: 8),
-          Icon(Icons.notifications_none_rounded, color: Colors.white, size: 24),
         ],
       ),
+      bottomNavigationBar: const BudgetaBottomNav(currentIndex: 3),
     );
   }
 }

@@ -203,11 +203,12 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _PostHeader(onReportTap: _reportPost),
-            Expanded(
+      body: Column(
+        children: [
+          _PostHeader(onReportTap: _reportPost),
+          Expanded(
+            child: SafeArea(
+              top: false, // let gradient go behind status bar
               child: Container(
                 decoration: const BoxDecoration(
                   color: BudgetaColors.background,
@@ -363,8 +364,8 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -379,7 +380,12 @@ class _PostHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(left: 20, right: 12, top: 16, bottom: 24),
+      padding: const EdgeInsets.only(
+        left: 20,
+        right: 12,
+        top: 44, // was 16 → now bigger, gradient covers status bar area
+        bottom: 24,
+      ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [BudgetaColors.primary, BudgetaColors.deep],

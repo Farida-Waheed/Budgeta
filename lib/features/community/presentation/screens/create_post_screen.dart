@@ -38,11 +38,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const _CreatePostHeader(),
-            Expanded(
+      body: Column(
+        children: [
+          const _CreatePostHeader(),
+          Expanded(
+            child: SafeArea(
+              top: false, // let header gradient color the status bar area
               child: Container(
                 decoration: const BoxDecoration(
                   color: BudgetaColors.background,
@@ -274,8 +275,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -288,7 +289,12 @@ class _CreatePostHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(left: 20, right: 12, top: 16, bottom: 24),
+      padding: const EdgeInsets.only(
+        left: 20,
+        right: 12,
+        top: 44, // was 16 — now bigger & coloring the top section
+        bottom: 24,
+      ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [BudgetaColors.primary, BudgetaColors.deep],

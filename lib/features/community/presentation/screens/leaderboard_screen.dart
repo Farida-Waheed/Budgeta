@@ -12,11 +12,12 @@ class LeaderboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const _LeaderboardHeader(),
-            Expanded(
+      body: Column(
+        children: [
+          const _LeaderboardHeader(), // now fully extended gradient
+          Expanded(
+            child: SafeArea(
+              top: false, // keep gradient covering the status bar
               child: Container(
                 decoration: const BoxDecoration(
                   color: BudgetaColors.background,
@@ -78,21 +79,26 @@ class LeaderboardScreen extends StatelessWidget {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// Gradient header similar to Challenges _Header
+/// BIGGER gradient header (matches ForgotPassword / Coach style)
 class _LeaderboardHeader extends StatelessWidget {
   const _LeaderboardHeader();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(left: 20, right: 12, top: 16, bottom: 24),
+      padding: const EdgeInsets.only(
+        left: 20,
+        right: 12,
+        top: 44, // increased from 16 → now colors the whole top section
+        bottom: 28,
+      ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [BudgetaColors.primary, BudgetaColors.deep],
@@ -150,11 +156,11 @@ class _LeaderboardTile extends StatelessWidget {
   Color _medalColor() {
     switch (rank) {
       case 1:
-        return const Color(0xFFFFD700); // gold
+        return const Color(0xFFFFD700); // Gold
       case 2:
-        return const Color(0xFFC0C0C0); // silver
+        return const Color(0xFFC0C0C0); // Silver
       case 3:
-        return const Color(0xFFCD7F32); // bronze
+        return const Color(0xFFCD7F32); // Bronze
       default:
         return BudgetaColors.accentLight;
     }

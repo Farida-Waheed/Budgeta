@@ -37,27 +37,28 @@ class _CoachHomeView extends StatelessWidget {
       backgroundColor: BudgetaColors.backgroundLight,
       bottomNavigationBar: const BudgetaBottomNav(currentIndex: 3),
 
-      body: SafeArea(
-        child: Column(
-          children: [
-            _CoachHeader(
-              title: 'Your AI Coach 💖',
-              subtitle: 'Daily magic crafted for you!',
-              onNotifications: () {
-                final cubit = context.read<CoachCubit>();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider.value(
-                      value: cubit,
-                      child: const AlertsScreen(),
-                    ),
+      body: Column(
+        children: [
+          _CoachHeader(
+            title: 'Your AI Coach 💖',
+            subtitle: 'Daily magic crafted for you!',
+            onNotifications: () {
+              final cubit = context.read<CoachCubit>();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider.value(
+                    value: cubit,
+                    child: const AlertsScreen(),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
+          ),
 
-            Expanded(
+          Expanded(
+            child: SafeArea(
+              top: false, // let the gradient stay behind the status bar
               child: BlocBuilder<CoachCubit, CoachState>(
                 builder: (context, state) {
                   if (state is CoachLoading || state is CoachInitial) {
@@ -186,8 +187,8 @@ class _CoachHomeView extends StatelessWidget {
                 },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -210,7 +211,12 @@ class _CoachHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 26),
+      padding: const EdgeInsets.fromLTRB(
+        20,
+        44,
+        20,
+        26,
+      ), // ⬅️ top: 44 like other big headers
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [BudgetaColors.primary, BudgetaColors.deep],

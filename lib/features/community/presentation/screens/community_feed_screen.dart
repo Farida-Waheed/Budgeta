@@ -47,142 +47,141 @@ class _CommunityView extends StatelessWidget {
         ),
         icon: const Icon(Icons.edit, color: Colors.white),
       ),
-      body: SafeArea(
-        child: BlocBuilder<CommunityCubit, CommunityState>(
-          builder: (context, state) {
-            final cubit = context.read<CommunityCubit>();
 
-            return RefreshIndicator(
-              onRefresh: () => cubit.refreshFeed(),
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: _Header(
-                      onTapLeaderboard: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider.value(
-                              value: cubit,
-                              child: const LeaderboardScreen(),
-                            ),
+      // 🔥 NO SafeArea here (so gradient can color the top area)
+      body: BlocBuilder<CommunityCubit, CommunityState>(
+        builder: (context, state) {
+          final cubit = context.read<CommunityCubit>();
+
+          return RefreshIndicator(
+            onRefresh: () => cubit.refreshFeed(),
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: _Header(
+                    onTapLeaderboard: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => BlocProvider.value(
+                            value: cubit,
+                            child: const LeaderboardScreen(),
                           ),
-                        );
-                      },
-                      onTapGroupChallenge: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider.value(
-                              value: cubit,
-                              child: const GroupChallengeScreen(),
-                            ),
+                        ),
+                      );
+                    },
+                    onTapGroupChallenge: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => BlocProvider.value(
+                            value: cubit,
+                            child: const GroupChallengeScreen(),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 90),
-                    sliver: SliverToBoxAdapter(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (state.isLoading)
-                            const Padding(
-                              padding: EdgeInsets.only(top: 24),
-                              child: Center(child: CircularProgressIndicator()),
+                ),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 90),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (state.isLoading)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 24),
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
+                        if (state.errorMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              state.errorMessage!,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.red,
+                              ),
                             ),
-                          if (state.errorMessage != null)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: Text(
-                                state.errorMessage!,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.red,
+                          ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Community Feed ✨',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'See how others are saving, winning, and learning.',
+                          style: TextStyle(fontSize: 11, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 12),
+                        if (state.feed.isEmpty && !state.isLoading)
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
                                 ),
-                              ),
+                              ],
                             ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'Community Feed ✨',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                            child: const Text(
+                              'No posts yet.\nShare your first win and inspire the community 💕',
+                              style: TextStyle(fontSize: 12),
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'See how others are saving, winning, and learning.',
-                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                        ...state.feed.map(
+                          (post) => PostCard(
+                            post: post,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => BlocProvider.value(
+                                    value: cubit,
+                                    child: PostDetailsScreen(postId: post.id),
+                                  ),
+                                ),
+                              );
+                            },
+                            onLike: () => cubit.toggleLike(post.id),
                           ),
-                          const SizedBox(height: 12),
-                          if (state.feed.isEmpty && !state.isLoading)
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.03),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
+                        ),
+                        const SizedBox(height: 16),
+                        if (state.groupChallenges.isNotEmpty)
+                          _GroupChallengeTeaser(
+                            challenge: state.groupChallenges.first,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => BlocProvider.value(
+                                    value: cubit,
+                                    child: const GroupChallengeScreen(),
                                   ),
-                                ],
-                              ),
-                              child: const Text(
-                                'No posts yet.\nShare your first win and inspire the community 💕',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ),
-                          ...state.feed.map(
-                            (post) => PostCard(
-                              post: post,
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => BlocProvider.value(
-                                      value: cubit,
-                                      child: PostDetailsScreen(postId: post.id),
-                                    ),
-                                  ),
-                                );
-                              },
-                              onLike: () => cubit.toggleLike(post.id),
-                            ),
+                                ),
+                              );
+                            },
                           ),
-                          const SizedBox(height: 16),
-                          if (state.groupChallenges.isNotEmpty)
-                            _GroupChallengeTeaser(
-                              challenge: state.groupChallenges.first,
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => BlocProvider.value(
-                                      value: cubit,
-                                      child: const GroupChallengeScreen(),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                        ],
-                      ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            );
-          },
-        ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 }
 
-// _Header and _GroupChallengeTeaser unchanged
-// (keeping exactly your UI as you pasted)
+// HEADER
 class _Header extends StatelessWidget {
   const _Header({
     required this.onTapLeaderboard,
@@ -195,7 +194,13 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 20),
+      // ⬇️ Increased top padding so gradient colors the top section like ForgotPassword
+      padding: const EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 44, // was 16
+        bottom: 20,
+      ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [BudgetaColors.primary, BudgetaColors.deep],

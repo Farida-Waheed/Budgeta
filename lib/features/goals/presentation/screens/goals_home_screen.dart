@@ -60,9 +60,11 @@ class _GoalsHomeViewState extends State<_GoalsHomeView> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
       body: SafeArea(
+        // 🔹 Let the gradient header color the very top (status bar) too
+        top: false,
         child: Column(
           children: [
-            const _GoalsHeader(), // ⬅️ bigger custom header (now same colors as Challenges)
+            const _GoalsHeader(), // ⬅️ bigger custom header (now same behavior as Challenges)
             Expanded(
               child: BlocBuilder<GoalsCubit, GoalsState>(
                 builder: (context, state) {
@@ -347,6 +349,9 @@ class _GoalsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🔹 Include status bar padding so gradient fills all top area nicely
+    final topPadding = MediaQuery.of(context).padding.top;
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -356,7 +361,12 @@ class _GoalsHeader extends StatelessWidget {
         ),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 24),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: topPadding + 16, // similar to ForgotPassword / Challenges
+        bottom: 24,
+      ),
       constraints: const BoxConstraints(minHeight: 110),
       child: const Row(
         children: [

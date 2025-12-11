@@ -24,6 +24,8 @@ class RecurringTransactionsScreen extends StatelessWidget {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
       body: SafeArea(
+        // 🔹 Let the gradient header paint under the status bar too
+        top: false,
         child: Column(
           children: [
             const _RecurringHeader(),
@@ -471,6 +473,9 @@ class _RecurringHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🔹 Include status bar padding so gradient fills all the way up
+    final topPadding = MediaQuery.of(context).padding.top;
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -480,7 +485,12 @@ class _RecurringHeader extends StatelessWidget {
         ),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: topPadding + 16,
+        bottom: 24,
+      ),
       constraints: const BoxConstraints(minHeight: 110),
       child: const Row(
         children: [

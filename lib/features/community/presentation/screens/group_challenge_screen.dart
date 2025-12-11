@@ -13,11 +13,12 @@ class GroupChallengeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const _GroupChallengesHeader(),
-            Expanded(
+      body: Column(
+        children: [
+          const _GroupChallengesHeader(),
+          Expanded(
+            child: SafeArea(
+              top: false, // let the gradient header color the status bar area
               child: Container(
                 decoration: const BoxDecoration(
                   color: BudgetaColors.background,
@@ -75,8 +76,8 @@ class GroupChallengeScreen extends StatelessWidget {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -89,7 +90,13 @@ class _GroupChallengesHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(left: 20, right: 12, top: 16, bottom: 24),
+      padding: const EdgeInsets.only(
+        left: 20,
+        right: 12,
+        top:
+            44, // was 16 → now bigger, colors the top section like ForgotPassword
+        bottom: 24,
+      ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [BudgetaColors.primary, BudgetaColors.deep],
@@ -269,8 +276,8 @@ class _ChallengeCard extends StatelessWidget {
               onPressed: onJoin,
               child: Text(
                 challenge.isJoined ? 'Already joined' : 'Join this group',
-                style: TextStyle(
-                  color: challenge.isJoined ? Colors.white : Colors.white,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
                 ),

@@ -30,6 +30,8 @@ class _ChallengesView extends StatelessWidget {
       backgroundColor: BudgetaColors.backgroundLight,
       bottomNavigationBar: const BudgetaBottomNav(currentIndex: 4),
       body: SafeArea(
+        // ⬅️ CHANGED: let the gradient color the very top (status bar area)
+        top: false,
         child: BlocBuilder<GamificationCubit, GamificationState>(
           builder: (context, state) {
             final cubit = context.read<GamificationCubit>();
@@ -234,7 +236,7 @@ void _showChallengeDialog(BuildContext context, Challenge challenge) {
   );
 }
 
-// _ChallengeDialogCard + _Header stay EXACTLY as you pasted (UI untouched)
+// _ChallengeDialogCard + _Header stay EXACTLY as you pasted (UI untouched except header padding tweak)
 class _ChallengeDialogCard extends StatelessWidget {
   const _ChallengeDialogCard({
     required this.challenge,
@@ -425,8 +427,16 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ⬅️ NEW: include status bar padding so gradient fills all the top area
+    final topPadding = MediaQuery.of(context).padding.top;
+
     return Container(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 24),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: topPadding + 16, // bigger, like ForgotPassword top: 44-ish
+        bottom: 24,
+      ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [BudgetaColors.primary, BudgetaColors.deep],

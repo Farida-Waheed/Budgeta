@@ -485,6 +485,8 @@ class _TransactionsListScreenState extends State<TransactionsListScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
       body: SafeArea(
+        // 🔹 Let the gradient header paint under the status bar
+        top: false,
         child: Column(
           children: [
             _TrackingHeader(
@@ -737,6 +739,9 @@ class _TrackingHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🔹 Include status bar padding so the header is tall & consistent
+    final topPadding = MediaQuery.of(context).padding.top;
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -746,7 +751,12 @@ class _TrackingHeader extends StatelessWidget {
         ),
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 16, 12, 24),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 12,
+        top: topPadding + 16,
+        bottom: 24,
+      ),
       constraints: const BoxConstraints(minHeight: 110),
       child: Row(
         children: [

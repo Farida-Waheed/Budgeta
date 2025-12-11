@@ -30,6 +30,7 @@ class _LogInScreenState extends State<LogInScreen> {
   }
 
   void _showSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message, style: const TextStyle(color: Colors.white)),
@@ -56,7 +57,9 @@ class _LogInScreenState extends State<LogInScreen> {
         Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
       }
     } catch (e) {
-      _showSnackBar("Login failed: ${e.toString()}");
+      if (mounted) {
+        _showSnackBar("Login failed: ${e.toString()}");
+      }
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -92,20 +95,90 @@ class _LogInScreenState extends State<LogInScreen> {
     );
   }
 
+  Widget _perksRow() {
+    TextStyle labelStyle = const TextStyle(
+      fontSize: 11,
+      color: BudgetaColors.textMuted,
+      fontWeight: FontWeight.w500,
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 36),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _perk(
+            icon: Icons.pie_chart_outline,
+            label: 'Track smarter',
+            style: labelStyle,
+          ),
+          _perk(
+            icon: Icons.savings_outlined,
+            label: 'Grow savings',
+            style: labelStyle,
+          ),
+          _perk(
+            icon: Icons.auto_awesome_rounded,
+            label: 'Stay on glow-up',
+            style: labelStyle,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _perk({
+    required IconData icon,
+    required String label,
+    required TextStyle style,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Icon(icon, size: 18, color: BudgetaColors.primary),
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: 80,
+          child: Text(
+            label,
+            style: style,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: BudgetaColors.backgroundLight,
       body: Column(
         children: [
-          // ===== BIGGER TOP GRADIENT HEADER (matches other screens) =====
+          // ===== RICH TOP GRADIENT HEADER =====
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(
               left: 20,
               right: 20,
               top: 44, // covers status bar with gradient
-              bottom: 40, // 👈 more space = visually bigger header
+              bottom: 32,
             ),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -115,10 +188,10 @@ class _LogInScreenState extends State<LogInScreen> {
               ),
               borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Welcome back ✨',
                   style: TextStyle(
                     fontSize: 20,
@@ -126,24 +199,58 @@ class _LogInScreenState extends State<LogInScreen> {
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(height: 4),
-                Text(
+                const SizedBox(height: 4),
+                const Text(
                   'Log in and keep your glow-up going.',
                   style: TextStyle(fontSize: 12, color: Colors.white70),
+                ),
+                const SizedBox(height: 16),
+
+                // mini glass card (like Coach header)
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.20),
+                        Colors.white.withOpacity(0.05),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.auto_awesome, size: 20, color: Colors.white),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'This is your safe little money check-in spot ✨',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
 
-          // ===== BODY CONTENT (card sits under header, not dead-center) =====
+          // ===== BODY CONTENT =====
           Expanded(
             child: SafeArea(
-              top: false, // let gradient sit behind notch area
+              top: false,
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
-                    const SizedBox(height: 28), // gap below header
+                    const SizedBox(height: 26),
                     Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 420),
@@ -323,7 +430,12 @@ class _LogInScreenState extends State<LogInScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 40), // breathing room at bottom
+                    const SizedBox(height: 22),
+
+                    // subtle perks row to fill space & match other screens
+                    _perksRow(),
+
+                    const SizedBox(height: 32),
                   ],
                 ),
               ),

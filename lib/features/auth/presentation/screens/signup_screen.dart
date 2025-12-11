@@ -35,6 +35,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _showSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message, style: const TextStyle(color: Colors.white)),
@@ -48,29 +49,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _submitSignup() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        final user = await _authService.signUpWithEmail(
-          _emailController.text.trim(),
-          _passwordController.text.trim(),
-        );
-        if (user != null) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .set({
-                'name': _nameController.text.trim(),
-                'email': _emailController.text.trim(),
-                'createdAt': FieldValue.serverTimestamp(),
-                'updatedAt': FieldValue.serverTimestamp(),
-              });
+    if (!_formKey.currentState!.validate()) return;
 
-          // ✅ After signup → Dashboard
-          // ignore: use_build_context_synchronously
-          Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
-        }
-      } catch (e) {
-        _showSnackBar("Signup failed: $e");
+    try {
+      final user = await _authService.signUpWithEmail(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      if (user != null && mounted) {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+
+        // ✅ After signup → Dashboard
+        Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar("Signup failed: ${e.toString()}");
       }
     }
   }

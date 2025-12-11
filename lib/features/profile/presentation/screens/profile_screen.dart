@@ -50,6 +50,8 @@ class ProfileScreen extends StatelessWidget {
         currentIndex: 4,
       ), // 👈 change index if needed
       body: SafeArea(
+        // 🔹 Let the gradient header paint under the status bar
+        top: false,
         child: FutureBuilder<Map<String, dynamic>>(
           future: _fetchUserData(user.uid),
           builder: (context, snapshot) {
@@ -153,8 +155,16 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🔹 Include status bar height so header looks tall & rich like other screens
+    final topPadding = MediaQuery.of(context).padding.top;
+
     return Container(
-      padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 24),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: topPadding + 16,
+        bottom: 24,
+      ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [BudgetaColors.primary, BudgetaColors.deep],
