@@ -1,11 +1,14 @@
 // lib/app/router.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 // HERO / WELCOME (Transform your money journey...)
 import '../features/dashboard/presentation/screens/dashboard_overview_screen.dart';
 
 // MAIN DASHBOARD (Hello, Beautiful! + balance + lists)
 import '../features/dashboard/presentation/screens/dashboard_home_screen.dart';
+import '../features/dashboard/state/dashboard_cubit.dart';
+import '../features/dashboard/data/dashboard_repository.dart' as dash_repo;
 
 // TRACKING
 import '../features/tracking/presentation/screens/transactions_list_screen.dart';
@@ -23,6 +26,9 @@ import '../features/gamification/presentation/screens/challenges_screen.dart';
 
 // SETTINGS
 import '../features/settings/presentation/screens/settings_screen.dart';
+
+// PROFILE
+import '../features/profile/presentation/screens/profile_screen.dart';
 
 // 🔐 AUTH SCREENS
 import '../features/auth/presentation/screens/login_screen.dart';
@@ -58,6 +64,9 @@ class AppRoutes {
 
   /// Settings
   static const String settings = '/settings';
+
+  /// Profile
+  static const String profile = '/profile';
 
   /// 🔐 AUTH
   static const String login = '/auth/login';
@@ -154,6 +163,15 @@ class AppRouter {
       case AppRoutes.challenges:
         return MaterialPageRoute(
           builder: (_) => const ChallengesScreen(),
+          settings: settings,
+        );
+
+      // -------------------
+      //   PROFILE
+      // -------------------
+      case AppRoutes.profile:
+        return MaterialPageRoute(
+          builder: (_) => const ProfileScreen(),
           settings: settings,
         );
 

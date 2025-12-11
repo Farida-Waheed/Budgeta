@@ -331,18 +331,23 @@ class _DashboardHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.18),
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.auto_awesome,
-                    color: Colors.white,
-                    size: 22,
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, AppRoutes.profile);
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.auto_awesome,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                 ),
               ),
