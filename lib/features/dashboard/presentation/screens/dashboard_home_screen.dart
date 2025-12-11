@@ -334,12 +334,9 @@ class _DashboardHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              // 👇 UPDATED: sparkle button opens ProfileScreen
               GestureDetector(
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                  );
+                  Navigator.pushNamed(context, AppRoutes.profile);
                 },
                 child: Container(
                   width: 40,

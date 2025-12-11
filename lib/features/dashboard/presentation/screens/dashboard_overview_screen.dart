@@ -154,30 +154,17 @@ class _FeatureGrid extends StatelessWidget {
         crossAxisSpacing: spacing,
         mainAxisSpacing: spacing,
         childAspectRatio: 1, // perfect squares
-        // 🔥 NOT const anymore because icons/routes are not const
+        // 🔥 NOT const anymore because icons are not const
         children: [
           _FeatureCard(
             icon: LucideIcons.sparkles,
-            routeName: AppRoutes.transactions, // tracking
             isPrimary: true,
           ),
-          _FeatureCard(
-            icon: PhosphorIconsLight.heart,
-            routeName: AppRoutes.goals,
-          ),
-          _FeatureCard(
-            icon: LucideIcons.trendingUp,
-            routeName: AppRoutes.dashboard,
-          ),
-          _FeatureCard(icon: LucideIcons.target, routeName: AppRoutes.coach),
-          _FeatureCard(
-            icon: FeatherIcons.star,
-            routeName: AppRoutes.challenges,
-          ),
-          _FeatureCard(
-            icon: FeatherIcons.activity,
-            routeName: AppRoutes.community,
-          ),
+          _FeatureCard(icon: PhosphorIconsLight.heart),
+          _FeatureCard(icon: LucideIcons.trendingUp),
+          _FeatureCard(icon: LucideIcons.target),
+          _FeatureCard(icon: FeatherIcons.star),
+          _FeatureCard(icon: FeatherIcons.activity),
         ],
       ),
     );
@@ -187,13 +174,11 @@ class _FeatureGrid extends StatelessWidget {
 /// Perfect floating boxes with matching shadow style
 class _FeatureCard extends StatelessWidget {
   final IconData icon;
-  final String routeName;
   final bool isPrimary;
 
   const _FeatureCard({
     super.key,
     required this.icon,
-    required this.routeName,
     this.isPrimary = false,
   });
 
@@ -207,24 +192,21 @@ class _FeatureCard extends StatelessWidget {
         ? BudgetaColors.deep
         : BudgetaColors.primary.withValues(alpha: 0.85);
 
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, routeName),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: border, width: isPrimary ? 2 : 1.2),
-          color: bg,
-          boxShadow: [
-            BoxShadow(
-              color: BudgetaColors.deep.withValues(alpha: 0.12),
-              blurRadius: 20,
-              spreadRadius: -1,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Center(child: Icon(icon, size: 24, color: iconColor)),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: border, width: isPrimary ? 2 : 1.2),
+        color: bg,
+        boxShadow: [
+          BoxShadow(
+            color: BudgetaColors.deep.withValues(alpha: 0.12),
+            blurRadius: 20,
+            spreadRadius: -1,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
+      child: Center(child: Icon(icon, size: 24, color: iconColor)),
     );
   }
 }
