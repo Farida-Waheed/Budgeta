@@ -5,6 +5,9 @@ import '../../../../app/theme.dart';
 import '../../../../app/router.dart';
 import '../../../../shared/bottom_nav.dart';
 
+// 👇 ADD THIS (adjust path if your profile screen is elsewhere)
+import '../../../../features/profile/presentation/screens/profile_screen.dart';
+
 // State
 import '../../state/dashboard_cubit.dart';
 import '../../../../features/tracking/state/tracking_cubit.dart';
@@ -331,18 +334,26 @@ class _DashboardHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.18),
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.auto_awesome,
-                    color: Colors.white,
-                    size: 22,
+              // 👇 UPDATED: sparkle button opens ProfileScreen
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                  );
+                },
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.auto_awesome,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                 ),
               ),
@@ -439,6 +450,8 @@ class _DashboardHeader extends StatelessWidget {
   }
 }
 
+// 🔻 everything below this is unchanged from your version
+
 /// ==========================================================
 /// ADVANCED FILTERS (type + category)
 /// ==========================================================
@@ -510,26 +523,24 @@ class _AdvancedFiltersRow extends StatelessWidget {
                 selected: selectedType == TransactionType.expense,
                 onSelected: (_) => onTypeChanged(TransactionType.expense),
               ),
-                            const SizedBox(width: 8),
-
+              const SizedBox(width: 8),
               FilterChip(
                 label: const Text('Income'),
                 selected: selectedType == TransactionType.income,
                 onSelected: (_) => onTypeChanged(TransactionType.income),
               ),
-                            const SizedBox(width: 8),
-
+              const SizedBox(width: 8),
               TextButton.icon(
                 onPressed: () async {
                   if (availableCategories.isEmpty) {
                     onCategoryChanged(null);
                     return;
                   }
-          
+
                   final uniqueIds = {
                     for (final c in availableCategories) c.categoryId,
                   }.toList();
-          
+
                   final chosen = await showModalBottomSheet<String?>(
                     context: context,
                     builder: (ctx) {
@@ -561,7 +572,7 @@ class _AdvancedFiltersRow extends StatelessWidget {
                       );
                     },
                   );
-          
+
                   onCategoryChanged(chosen);
                 },
                 style: TextButton.styleFrom(
